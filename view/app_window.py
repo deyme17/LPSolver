@@ -1,11 +1,9 @@
-
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTabWidget
 )
 from PyQt6.QtGui import QFont
 from . import InputSection, ResultSection
 from utils import StyleSheet
-
 
 
 class LPSolverApp(QMainWindow):
@@ -19,7 +17,7 @@ class LPSolverApp(QMainWindow):
         """
         super().__init__()
         self.setWindowTitle("Linear Programming Solver")
-        self.setGeometry(100, 100, 1200, 1000)
+        self.setGeometry(100, 100, 1000, 700)
         self.setStyleSheet(StyleSheet.DARK_STYLE)
         
         # widgets
@@ -41,15 +39,26 @@ class LPSolverApp(QMainWindow):
         title = self._create_title()
         main_layout.addWidget(title)
         
-        # input
-        main_layout.addWidget(self.input_section)
+        # tabs
+        self.tabs = QTabWidget()
+        
+        # input tab
+        input_tab = QWidget()
+        input_layout = QVBoxLayout(input_tab)
+        input_layout.addWidget(self.input_section)
+        self.tabs.addTab(input_tab, "Input")
+        
+        # results tab
+        results_tab = QWidget()
+        results_layout = QVBoxLayout(results_tab)
+        results_layout.addWidget(self.results_section)
+        self.tabs.addTab(results_tab, "Results")
+        
+        main_layout.addWidget(self.tabs)
         
         # controls
         buttons_layout = self._create_buttons_layout()
         main_layout.addLayout(buttons_layout)
-        
-        # result
-        main_layout.addWidget(self.results_section)
         
         # signals
         self._connect_signals()
@@ -92,8 +101,15 @@ class LPSolverApp(QMainWindow):
     def _connect_signals(self) -> None:
         """Connect button signals to their slots"""
         self.clear_btn.clicked.connect(self.on_clear)
+        self.solve_btn.clicked.connect(self.on_solve)
     
     def on_clear(self) -> None:
         """Handle clear button click - reset all forms"""
         self.input_section.clear()
         self.results_section.clear()
+
+    def on_solve(self) -> None:
+        """Handle solve button click"""
+        # Switch to results tab after solving
+        self.tabs.setCurrentIndex(1)
+        print("Sorry, i am just a plug :(")

@@ -17,7 +17,7 @@ class LPSolverApp(QMainWindow):
         """
         super().__init__()
         self.setWindowTitle("Linear Programming Solver")
-        self.setGeometry(100, 100, 1000, 700)
+        self.setGeometry(100, 100, 700, 700)
         self.setStyleSheet(StyleSheet.DARK_STYLE)
         
         # widgets

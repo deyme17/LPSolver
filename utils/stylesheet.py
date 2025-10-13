@@ -37,19 +37,6 @@ class StyleSheet:
             selection-background-color: #0d47a1;
         }
         
-        QSpinBox {
-            background-color: #2d2d2d;
-            color: #ffffff;
-            border: 1px solid #3d3d3d;
-            border-radius: 4px;
-            padding: 5px;
-        }
-        
-        QSpinBox::up-button, QSpinBox::down-button {
-            background-color: #3d3d3d;
-            border: none;
-        }
-        
         QComboBox {
             background-color: #2d2d2d;
             color: #ffffff;

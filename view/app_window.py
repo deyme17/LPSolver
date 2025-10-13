@@ -110,15 +110,12 @@ class LPSolverApp(QMainWindow):
 
     def on_solve(self) -> None:
         """Handle solve button click"""
-        try:
-            problem_data = self.input_section.get_data()
-            if not problem_data:
-                self._show_error("No data provided")
-                return
+        problem_data, success, error_msg = self.input_section.get_data()
+        if success and problem_data:
             self.tabs.setCurrentIndex(1)
             print("Sorry, i am just a plug :(")
-        except Exception as e:
-            self._show_error(f"Error getting input data: {str(e)}")
+        else:
+            self._show_error(error_msg)
 
     def _show_error(self, message: str) -> None:
         """Show error message to user"""

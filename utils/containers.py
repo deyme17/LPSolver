@@ -12,12 +12,10 @@ class ConstraintData:
 @dataclass
 class LPProblem:
     """Container for Linear Programming problem data"""
-    success: bool
     optimization_type: str = ""
     objective_coefficients: List[float] = field(default_factory=list)
     constraints: List[ConstraintData] = field(default_factory=list)
     variables_count: int = 0
-    error: str = ""
 
 
 @dataclass

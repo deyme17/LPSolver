@@ -1,135 +1,105 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from PyQt6.QtWidgets import (
     QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, 
-    QTextEdit, QTableWidget, QTableWidgetItem
 )
-from PyQt6.QtCore import Qt
-
-
-
-STATUS_COLORS = {
-    'optimal': '#4CAF50',
-    'infeasible': '#f44336',
-    'unbounded': '#FF9800',
-    'error': '#f44336'
-}
+from utils import (
+    ResultUIHelper, SimplexTableManager,
+    OptimizationResult, SolutionStatus,
+    ResultFormatter
+)
 
 
 class ResultSection(QGroupBox):
     """Widget for displaying optimization results"""
+    
     def __init__(self) -> None:
         super().__init__("Results")
-        self.init_ui()
+        self._init_widgets()
+        self._init_ui()
     
-    def init_ui(self) -> None:
+    def _init_widgets(self) -> None:
+        """Initialize widgets"""
+        self.status_label = ResultUIHelper.create_status_label()
+        self.optimal_value_label = ResultUIHelper.create_value_label()
+        self.solution_text = ResultUIHelper.create_solution_text()
+        self.simplex_table = ResultUIHelper.create_table()
+        self.table_manager = SimplexTableManager(self.simplex_table)
+    
+    def _init_ui(self) -> None:
         """Initialize the results section UI"""
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
         
-        # status label
-        self.status_label = QLabel("No solution yet")
-        self.status_label.setStyleSheet("color: #aaaaaa; font-style: italic;")
         layout.addWidget(self.status_label)
-        
-        # optimal value
-        optimal_layout = QHBoxLayout()
-        optimal_layout.addWidget(QLabel("Optimal Value:"))
-        self.optimal_value_label = QLabel("—")
-        self.optimal_value_label.setStyleSheet("font-weight: bold; color: #4CAF50;")
-        optimal_layout.addWidget(self.optimal_value_label)
-        optimal_layout.addStretch()
-        layout.addLayout(optimal_layout)
-        
-        # sulution
+        layout.addLayout(self._create_optimal_value_layout())
         layout.addWidget(QLabel("Solution:"))
-        self.solution_text = QTextEdit()
-        self.solution_text.setReadOnly(True)
-        self.solution_text.setMaximumHeight(20)
-        self.solution_text.setMaximumWidth(200)
-        self.solution_text.setPlaceholderText("Variable values will appear here...")
         layout.addWidget(self.solution_text)
-        
-        # table
         layout.addWidget(QLabel("Final Simplex table:"))
-        self.simplex_table = QTableWidget()
-        self.simplex_table.setMaximumHeight(200)
         layout.addWidget(self.simplex_table)
-        
         layout.addStretch()
     
-    def display_results(self, results: Dict[str, Any]) -> None:
-        """
-        Display optimization results.
-        Args:
-            results: Dictionary {
-                'status': str
-                'optimal_value': float
-                'solution': List[float]
-                'tableau': List[List[float]]
-            }
-        """
-        status = results.get('status', 'unknown')
-        
-        # update status
-        color = STATUS_COLORS.get(status, '#aaaaaa')
-        self.status_label.setText(f"Status: {status.upper()}")
-        self.status_label.setStyleSheet(f"color: {color}; font-weight: bold;")
-        
-        # update optimal value
-        optimal_value = results.get('optimal_value', None)
-        if optimal_value is not None:
-            self.optimal_value_label.setText(f"{optimal_value:.6f}")
-        else:
-            self.optimal_value_label.setText("—")
-        
-        # update solution
-        solution = results.get('solution', None)
-        if solution is not None:
-            solution_text = ""
-            
-            for i, val in enumerate(solution):
-                solution_text += f"x_{i+1} = {val:.6f}\n"
-            
-            self.solution_text.setPlainText(solution_text.strip())
-        else:
-            self.solution_text.clear()
-        
-        # update table
-        table = results.get('table', None)
-        if table is not None:
-            self._display_table(table)
-        else:
-            self.simplex_table.clear()
-            self.simplex_table.setRowCount(0)
-            self.simplex_table.setColumnCount(0)
+    def _create_optimal_value_layout(self) -> QHBoxLayout:
+        """Create optimal value display layout"""
+        layout = QHBoxLayout()
+        layout.addWidget(QLabel("Optimal Value:"))
+        layout.addWidget(self.optimal_value_label)
+        layout.addStretch()
+        return layout
     
-    def _display_table(self, table: List[List[float]]) -> None:
-        """Display the simplex table in the table widget"""
-        if not table:
+    def display_results(self, results: Dict[str, Any]) -> None:
+        """Display optimization results"""
+        result = self._parse_results(results)
+        
+        if result.error_message:
+            self.display_error(result.error_message)
             return
         
-        rows = len(table)
-        cols = len(table[0]) if rows > 0 else 0
+        self._update_status(result.status)
+        self._update_optimal_value(result.optimal_value)
+        self._update_solution(result.solution)
+        self._update_table(result.table)
+    
+    def _parse_results(self, results: Dict[str, Any]) -> OptimizationResult:
+        """Parse results dictionary into OptimizationResult"""
+        return OptimizationResult(
+            status=results.get('status', 'unknown'),
+            optimal_value=results.get('optimal_value'),
+            solution=results.get('solution'),
+            table=results.get('table'),
+            error_message=results.get('error_message')
+        )
+    
+    def _update_status(self, status: str) -> None:
+        """Update status label"""
+        color = ResultUIHelper.get_status_color(status)
+        formatted_status = ResultFormatter.format_status(status)
         
-        self.simplex_table.setRowCount(rows)
-        self.simplex_table.setColumnCount(cols)
-        
-        # fill table
-        for i in range(rows):
-            for j in range(cols):
-                item = QTableWidgetItem(f"{table[i][j]:.4f}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.simplex_table.setItem(i, j, item)
+        self.status_label.setText(f"Status: {formatted_status}")
+        self.status_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+    
+    def _update_optimal_value(self, value: Optional[float]) -> None:
+        """Update optimal value label"""
+        formatted_value = ResultFormatter.format_optimal_value(value)
+        self.optimal_value_label.setText(formatted_value)
+    
+    def _update_solution(self, solution: Optional[List[float]]) -> None:
+        """Update solution text"""
+        if solution:
+            formatted_solution = ResultFormatter.format_solution(solution)
+            self.solution_text.setPlainText(formatted_solution)
+        else:
+            self.solution_text.clear()
+    
+    def _update_table(self, table: Optional[List[List[float]]]) -> None:
+        """Update simplex table"""
+        self.table_manager.display_table(table)
     
     def display_error(self, error_message: str) -> None:
         """Display an error message"""
-        self.status_label.setText("Error")
-        self.status_label.setStyleSheet("color: #f44336; font-weight: bold;")
+        self._update_status(SolutionStatus.ERROR.value)
         self.optimal_value_label.setText("—")
         self.solution_text.setPlainText(error_message)
-        self.simplex_table.clear()
-        self.simplex_table.setRowCount(0)
-        self.simplex_table.setColumnCount(0)
+        self.table_manager.clear()
     
     def clear(self) -> None:
         """Clear all result displays"""
@@ -137,6 +107,4 @@ class ResultSection(QGroupBox):
         self.status_label.setStyleSheet("color: #aaaaaa; font-style: italic;")
         self.optimal_value_label.setText("—")
         self.solution_text.clear()
-        self.simplex_table.clear()
-        self.simplex_table.setRowCount(0)
-        self.simplex_table.setColumnCount(0)
+        self.table_manager.clear()

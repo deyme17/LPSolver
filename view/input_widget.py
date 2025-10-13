@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from PyQt6.QtWidgets import (
     QGroupBox, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, 
     QComboBox, QPushButton, QScrollArea, QWidget
@@ -39,7 +39,7 @@ class InputSection(QGroupBox):
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
         
-        # panel
+        # config
         config_layout = self._create_config_layout()
         layout.addLayout(config_layout)
         
@@ -140,7 +140,7 @@ class InputSection(QGroupBox):
         
         self.objective_layout.addStretch()
     
-    def _create_coefficient_input(self, index: int) -> tuple[QLabel, QLineEdit]:
+    def _create_coefficient_input(self, index: int) -> Tuple[QLabel, QLineEdit]:
         """Factory method for creating coefficient inputs"""
         label = UIHelper.create_label(f"a{index}:", InputWidgetConstants.LABEL_WIDTH)
         line_edit = UIHelper.create_numeric_input("0", InputWidgetConstants.OBJECTIVE_INPUT_WIDTH)
@@ -171,8 +171,17 @@ class InputSection(QGroupBox):
         
         self.constraints_layout.addStretch()
     
-    def get_data(self) -> LPProblem:
-        """Extract and validate input data"""
+    def get_data(self) -> Tuple[LPProblem, bool, str]:
+        """
+        Returns:
+            LPProblem: Dataclass object containing:
+                - optimization_type (str): "max" or "min"
+                - objective_coefficients (list[float]): Coefficients of the objective function
+                - constraints (list[Constraint]): Parsed constraints
+                - variables_count (int): Number of decision variables
+            bool: True if extraction and validation succeeded, otherwise False.
+            str: Error message if validation failed, empty string otherwise.
+        """
         try:
             objective_coeffs = InputValidator.validate_coefficients(
                 self.objective_inputs
@@ -180,17 +189,13 @@ class InputSection(QGroupBox):
             constraints_data = self._parse_constraints()
             
             return LPProblem(
-                success=True,
                 optimization_type=self.optimization_type.currentText(),
                 objective_coefficients=objective_coeffs,
                 constraints=constraints_data,
                 variables_count=len(objective_coeffs)
-            )
+            ), True, ""
         except ValueError as e:
-            return LPProblem(
-                success=False,
-                error=f"Invalid input: {str(e)}"
-            )
+            return None, False, str(e)
     
     def _parse_constraints(self) -> List[ConstraintData]:
         """Parse constraint rows"""
@@ -281,12 +286,10 @@ class ConstraintRow(QHBoxLayout):
             self.coefficient_inputs,
             prefix="x_"
         )
-        
         free_val = InputValidator.validate_coefficient(
             self.free_vars_input.text(),
             "free value"
         )
-        
         return ConstraintData(
             coefficients=coefficients,
             operator=self.operator_combo.currentText(),

@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont
 from . import InputSection, ResultSection
-from utils import StyleSheet
+from utils import StyleSheet, AppConstants
 
 
 class LPSolverApp(QMainWindow):
@@ -12,20 +12,23 @@ class LPSolverApp(QMainWindow):
         """
         Initialize the main application window.
         Args:
-            input_section: InputSection widget for problem setup
-            results_section: ResultSection widget for displaying results
+            input_section: InputSection widget instance for problem setup
+            results_section: ResultSection widget instance for displaying results
         """
         super().__init__()
-        self.setWindowTitle("Linear Programming Solver")
-        self.setGeometry(100, 100, 700, 700)
-        self.setStyleSheet(StyleSheet.DARK_STYLE)
+        self.input_section = input_section
+        self.results_section = results_section
         
-        # widgets
-        self.input_section = input_section()
-        self.results_section = results_section()
-        
+        self._setup_window()
         self.init_ui()
-    
+        self._connect_signals()
+
+    def _setup_window(self) -> None:
+        """Set ups window settings"""
+        self.setWindowTitle(AppConstants.WINDOW_TITLE)
+        self.setMinimumSize(AppConstants.WINDOW_SIZE[0], AppConstants.WINDOW_SIZE[1])
+        self.setStyleSheet(StyleSheet.DARK_STYLE)
+
     def init_ui(self) -> None:
         """Initialize the user interface layout and components"""
         central_widget = QWidget()
@@ -59,9 +62,6 @@ class LPSolverApp(QMainWindow):
         # controls
         buttons_layout = self._create_buttons_layout()
         main_layout.addLayout(buttons_layout)
-        
-        # signals
-        self._connect_signals()
     
     def _create_title(self) -> QLabel:
         """Create and configure the title label"""

@@ -7,8 +7,8 @@ from view import InputSection, ResultSection
 def main():
     app = QApplication(sys.argv)
     window = LPSolverApp(
-        input_section=InputSection,
-        results_section=ResultSection
+        input_section=InputSection(),
+        results_section=ResultSection()
     )
     window.show()
     sys.exit(app.exec())

@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from view import LPSolverApp, InputSection, ResultSection
+from view.app_window import LPSolverApp
+from view import InputSection, ResultSection
 
 
 def main():

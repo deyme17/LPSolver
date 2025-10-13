@@ -110,6 +110,17 @@ class LPSolverApp(QMainWindow):
 
     def on_solve(self) -> None:
         """Handle solve button click"""
-        # Switch to results tab after solving
-        self.tabs.setCurrentIndex(1)
-        print("Sorry, i am just a plug :(")
+        try:
+            problem_data = self.input_section.get_data()
+            if not problem_data:
+                self._show_error("No data provided")
+                return
+            self.tabs.setCurrentIndex(1)
+            print("Sorry, i am just a plug :(")
+        except Exception as e:
+            self._show_error(f"Error getting input data: {str(e)}")
+
+    def _show_error(self, message: str) -> None:
+        """Show error message to user"""
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.warning(self, "Input Error", message)

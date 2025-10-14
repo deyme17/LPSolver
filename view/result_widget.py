@@ -37,7 +37,6 @@ class ResultSection(QGroupBox):
         layout.addWidget(self.solution_text)
         layout.addWidget(QLabel("Final Simplex table:"))
         layout.addWidget(self.simplex_table)
-        layout.addStretch()
     
     def _create_optimal_value_layout(self) -> QHBoxLayout:
         """Create optimal value display layout"""

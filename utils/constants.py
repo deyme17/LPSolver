@@ -39,9 +39,9 @@ class ConstraintOperator(Enum):
 
 # result
 class ResultConstants:
-    SOLUTION_TEXT_HEIGHT = 30
-    SOLUTION_TEXT_WIDTH = 200
-    TABLE_MAX_HEIGHT = 200
+    SOLUTION_TEXT_HEIGHT = 40
+    SOLUTION_TEXT_WIDTH = 400
+    TABLE_MAX_HEIGHT = 600
     DECIMAL_PLACES = 6
     TABLE_DECIMAL_PLACES = 4
 

@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from PyQt6.QtWidgets import (
     QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, 
 )
@@ -46,10 +46,8 @@ class ResultSection(QGroupBox):
         layout.addStretch()
         return layout
     
-    def display_results(self, results: Dict[str, Any]) -> None:
+    def display_results(self, result: OptimizationResult) -> None:
         """Display optimization results"""
-        result = self._parse_results(results)
-        
         if result.error_message:
             self.display_error(result.error_message)
             return
@@ -58,16 +56,6 @@ class ResultSection(QGroupBox):
         self._update_optimal_value(result.optimal_value)
         self._update_solution(result.solution)
         self._update_table(result.table)
-    
-    def _parse_results(self, results: Dict[str, Any]) -> OptimizationResult:
-        """Parse results dictionary into OptimizationResult"""
-        return OptimizationResult(
-            status=results.get('status', 'unknown'),
-            optimal_value=results.get('optimal_value'),
-            solution=results.get('solution'),
-            table=results.get('table'),
-            error_message=results.get('error_message')
-        )
     
     def _update_status(self, status: str) -> None:
         """Update status label"""

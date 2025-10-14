@@ -1,23 +1,26 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTabWidget
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTabWidget, QMessageBox
 )
 from PyQt6.QtGui import QFont
 from . import InputSection, ResultSection
+from core.simplex_solver import SimplexSolver
 from utils import StyleSheet, AppConstants
 
 
 class LPSolverApp(QMainWindow):
     """Main application window for LP solver"""
-    def __init__(self, input_section: InputSection, results_section: ResultSection) -> None:
+    def __init__(self, input_section: InputSection, results_section: ResultSection, solver: SimplexSolver) -> None:
         """
         Initialize the main application window.
         Args:
             input_section: InputSection widget instance for problem setup
             results_section: ResultSection widget instance for displaying results
+            solver: SimplexSolver for solving the LP problem
         """
         super().__init__()
         self.input_section = input_section
         self.results_section = results_section
+        self.solver = solver
         
         self._setup_window()
         self.init_ui()
@@ -110,14 +113,17 @@ class LPSolverApp(QMainWindow):
 
     def on_solve(self) -> None:
         """Handle solve button click"""
-        problem_data, success, error_msg = self.input_section.get_data()
-        if success and problem_data:
-            self.tabs.setCurrentIndex(1)
-            print("Sorry, i am just a plug :(")
-        else:
-            self._show_error(error_msg)
+        try:
+            problem_data, success, error_msg = self.input_section.get_data()
+            if success and problem_data:
+                self.tabs.setCurrentIndex(1)
+                result = self.solver.solve(problem_data)
+                self.results_section.display_results(result)
+            else:
+                self._show_error(error_msg)
+        except Exception as e:
+            self._show_error(str(e))
 
     def _show_error(self, message: str) -> None:
         """Show error message to user"""
-        from PyQt6.QtWidgets import QMessageBox
         QMessageBox.warning(self, "Input Error", message)

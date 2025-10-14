@@ -1,6 +1,7 @@
 from utils import LPProblem, BFSolution
 
 class BFSFinder:
+    """A solver for finding initial basic feasible solutions (BFS) for linear programming problems."""
     @staticmethod
     def find_initial_bfs(standard_form: LPProblem) -> BFSolution:
         """

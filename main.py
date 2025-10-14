@@ -12,8 +12,8 @@ def main():
     app = QApplication(sys.argv)
 
     solver = LPSolver(
-        bfs_finder=BFSFinder,
-        algorithm=SimplexAlgorithm
+        bfs_finder=BFSFinder(),
+        algorithm=SimplexAlgorithm()
     )
     window = LPSolverApp(
         input_section=InputSection(),

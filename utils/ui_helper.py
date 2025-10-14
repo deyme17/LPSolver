@@ -1,6 +1,7 @@
-from typing import Optional, List
+from typing import Optional
 from PyQt6.QtWidgets import QLabel, QLineEdit, QSpinBox, QLayout, QTextEdit, QTableWidget, QTableWidgetItem
 from utils.constants import ResultConstants, SolutionStatus, StatusColor
+from utils.containers import LPResult
 from utils.formatters import ResultFormatter
 from PyQt6.QtCore import Qt
 
@@ -91,41 +92,43 @@ class ResultUIHelper:
         
 
 class SimplexTableManager:
-    """Manages simplex table display"""
+    """Manages display of any LP-related table (simplex, dual, etc.)"""
     
     def __init__(self, table_widget: QTableWidget):
         self.table_widget = table_widget
-    
-    def display_table(self, table: Optional[List[List[float]]]) -> None:
-        """Display the simplex table"""
-        if not table:
+
+    def display_result_table(self, result: Optional[LPResult]) -> None:
+        """
+        Display table contained in LPResult (if any).
+        Args:
+            result (LPResult): result object with optional 'table' field.
+        """
+        if result is None or not result.table:
             self.clear()
             return
         
-        rows = len(table)
-        cols = len(table[0]) if rows > 0 else 0
+        headers = result.table.get("headers", [])
+        rows = result.table.get("rows", [])
         
-        self._setup_dimensions(rows, cols)
-        self._fill_table(table, rows, cols)
-    
+        self._setup_dimensions(len(rows), len(headers))
+        self.table_widget.setHorizontalHeaderLabels(headers)
+        
+        for i, row in enumerate(rows):
+            for j, value in enumerate(row[1:] if isinstance(row[0], str) else row):
+                self._set_cell(i, j, value)
+
     def _setup_dimensions(self, rows: int, cols: int) -> None:
         """Setup table dimensions"""
         self.table_widget.setRowCount(rows)
         self.table_widget.setColumnCount(cols)
-    
-    def _fill_table(self, table: List[List[float]], rows: int, cols: int) -> None:
-        """Fill table with values"""
-        for i in range(rows):
-            for j in range(cols):
-                self._set_cell(i, j, table[i][j])
-    
+
     def _set_cell(self, row: int, col: int, value: float) -> None:
         """Set single cell value"""
         formatted_value = ResultFormatter.format_table_value(value)
         item = QTableWidgetItem(formatted_value)
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         self.table_widget.setItem(row, col, item)
-    
+
     def clear(self) -> None:
         """Clear table"""
         self.table_widget.clear()

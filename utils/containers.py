@@ -30,7 +30,7 @@ class LPResult:
     status: str
     optimal_value: Optional[float] = None
     solution: Optional[List[float]] = None
-    table: Optional[List[List[float]]] = None
+    table: Optional[dict] = None
     error_message: Optional[str] = None
 
 

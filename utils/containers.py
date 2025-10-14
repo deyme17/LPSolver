@@ -41,7 +41,6 @@ class BFSolution:
     basis_indices: List[int]
     basic_values: List[float]
     full_solution: Optional[List[float]] = None
-    objective_value: Optional[float] = None
 
     def is_feasible(self) -> bool:
         return all(val >= 0 for val in self.basic_values)

@@ -1,11 +1,11 @@
 from utils import LPProblem, LPResult
-from . import BFSFinder, ISimplexAlgorithm
+from . import IBFSFinder, ISimplexAlgorithm
 from utils import SolutionStatus
 
 
 class LPSolver:
     """A tamplate for solving linear programming problems."""
-    def __init__(self, bfs_finder: BFSFinder, algorithm: type[ISimplexAlgorithm]) -> None:
+    def __init__(self, bfs_finder: IBFSFinder, algorithm: ISimplexAlgorithm) -> None:
         """
         Args:
             bfs_finder: Component for finding basic feasible solutions
@@ -33,7 +33,7 @@ class LPSolver:
 
             # initial basic feasible solution
             initial_solution = self.bfs_finder.find_initial_bfs(standard_form)
-            if not initial_solution:
+            if not initial_solution.is_feasible():
                 return LPResult(
                     status=SolutionStatus.INFEASIBLE,
                     error_message="No initial BFS found"

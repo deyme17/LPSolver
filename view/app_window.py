@@ -3,19 +3,19 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont
 from . import InputSection, ResultSection
-from core.simplex_solver import SimplexSolver
+from core.lp_solver import LPSolver
 from utils import StyleSheet, AppConstants
 
 
 class LPSolverApp(QMainWindow):
     """Main application window for LP solver"""
-    def __init__(self, input_section: InputSection, results_section: ResultSection, solver: SimplexSolver) -> None:
+    def __init__(self, input_section: InputSection, results_section: ResultSection, solver: LPSolver) -> None:
         """
         Initialize the main application window.
         Args:
             input_section: InputSection widget instance for problem setup
             results_section: ResultSection widget instance for displaying results
-            solver: SimplexSolver for solving the LP problem
+            solver: LPSolver for solving the LP problem
         """
         super().__init__()
         self.input_section = input_section

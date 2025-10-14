@@ -1,5 +1,5 @@
 from typing import List, Optional
-from core import ITable 
+from core.simplex_table import ITable
 from dataclasses import dataclass, field
 
 @dataclass

@@ -1,7 +1,7 @@
 from typing import Optional
 from PyQt6.QtWidgets import QLabel, QLineEdit, QSpinBox, QLayout, QTextEdit, QTableWidget, QTableWidgetItem
 from utils.constants import ResultConstants, SolutionStatus, StatusColor
-from core import ITable
+from core.simplex_table import ITable
 from PyQt6.QtCore import Qt
 
 

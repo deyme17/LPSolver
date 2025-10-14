@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (
 )
 from utils import (
     ResultUIHelper, SimplexTableManager,
-    OptimizationResult, SolutionStatus,
+    LPResult, SolutionStatus,
     ResultFormatter
 )
 
@@ -46,7 +46,7 @@ class ResultSection(QGroupBox):
         layout.addStretch()
         return layout
     
-    def display_results(self, result: OptimizationResult) -> None:
+    def display_results(self, result: LPResult) -> None:
         """Display optimization results"""
         if result.error_message:
             self.display_error(result.error_message)

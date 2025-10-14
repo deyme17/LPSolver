@@ -19,8 +19,8 @@ class LPProblem:
 
 
 @dataclass
-class OptimizationResult:
-    """Container for optimization results"""
+class LPResult:
+    """Container for Linear Programming problem results"""
     status: str
     optimal_value: Optional[float] = None
     solution: Optional[List[float]] = None

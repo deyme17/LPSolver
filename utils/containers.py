@@ -1,4 +1,5 @@
 from typing import List, Optional
+from core import ITable 
 from dataclasses import dataclass, field
 
 @dataclass
@@ -30,7 +31,7 @@ class LPResult:
     status: str
     optimal_value: Optional[float] = None
     solution: Optional[List[float]] = None
-    table: Optional[dict] = None
+    table: Optional[ITable] = None
     error_message: Optional[str] = None
 
 

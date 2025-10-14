@@ -2,6 +2,7 @@ from typing import List, Optional
 from PyQt6.QtWidgets import (
     QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, 
 )
+from core import ITable
 from utils import (
     ResultUIHelper, SimplexTableManager,
     LPResult, SolutionStatus,
@@ -78,7 +79,7 @@ class ResultSection(QGroupBox):
         else:
             self.solution_text.clear()
     
-    def _update_table(self, table: Optional[List[List[float]]]) -> None:
+    def _update_table(self, table: Optional[ITable]) -> None:
         """Update simplex table"""
         self.table_manager.display_table(table)
     

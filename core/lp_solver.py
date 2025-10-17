@@ -1,6 +1,8 @@
-from utils import LPProblem, LPResult
+from utils import (
+    LPProblem, LPResult, ConstraintData, 
+    SolutionStatus, OptimizationType
+    )
 from . import IBFSFinder, ISimplexAlgorithm
-from utils import SolutionStatus, OptimizationType, ConstraintData
 
 
 class LPSolver:
@@ -57,12 +59,14 @@ class LPSolver:
             LPProblem: The linear programming problem in standard form
         """
         obj_coefs = statement.objective_coefficients.copy()
-        slack_count = 0
-        constraints = []
 
         # if minimize -> maximize negative function
         if statement.optimization_type == OptimizationType.MINIMIZE:
             obj_coefs = [-a for a in obj_coefs]
+
+        slack_count = 0
+        slack_needed = sum(1 for c in statement.constraints if c.operator in ("<=", ">="))
+        constraints = []
 
         # make all constraints '='
         for constraint in statement.constraints:
@@ -78,18 +82,17 @@ class LPSolver:
                 elif operator == "<=": operator = ">="
 
             # add slack variables
-            slack_vars = [0] * len(constraint.coefficients)
-            if operator == ">=": slack_vars[slack_count] = -1
-            elif operator == "<=": slack_vars[slack_count] = 1
+            slack_vars = [0] * slack_needed
+            if operator in ("<=", ">="):
+                slack_vars[slack_count] = 1 if operator == "<=" else -1
+                slack_count += 1
 
             new_coeffs = coefs + slack_vars
             constraints.append(ConstraintData(new_coeffs, "=", free_val))
 
-            slack_count += 1
-
         return LPProblem(
             optimization_type      = OptimizationType.MAXIMIZE,
-            objective_coefficients = obj_coefs + [0] * len(statement.constraints),
+            objective_coefficients = obj_coefs + [0] * slack_needed,
             constraints            = constraints,
-            variables_count        = len(obj_coefs) + len(statement.constraints)   
+            variables_count        = len(obj_coefs) + slack_needed   
         )

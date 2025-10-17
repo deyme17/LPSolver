@@ -94,7 +94,7 @@ class InputSection(QGroupBox):
     def _create_objective_label() -> QLabel:
         """Create objective function label"""
         return UIHelper.create_label(
-            "Objective Function: f = a1*x1 + a2*x2 + ...",
+            "Objective Function: f = a1*x1 + a2*x2 + ... (all variables >= 0)",
             style="color: #aaaaaa; font-style: italic;"
         )
     

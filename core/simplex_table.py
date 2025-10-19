@@ -63,11 +63,13 @@ class SimplexTable(ITable):
             Column index of entering variable, or None if optimal
         """
         delta = self._compute_delta()
-        positive_mask = delta > EPSILON
-        if not np.any(positive_mask):
+        
+        positive_indices = np.where(delta > EPSILON)[0]
+        if len(positive_indices) == 0: 
             return None
-        positive_indices = np.where(positive_mask)[0]
-        return int(positive_indices[np.argmax(delta[positive_indices])])
+
+        entering_col = positive_indices[np.argmax(delta[positive_indices])]
+        return int(entering_col)
     
     def get_leaving_variable(self, entering_col: int) -> Optional[int]:
         """

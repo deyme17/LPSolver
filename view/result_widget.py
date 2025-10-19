@@ -2,7 +2,7 @@ from typing import List, Optional
 from PyQt6.QtWidgets import (
     QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
 )
-from core import ITable
+from utils import ITable
 from utils import (
     ResultUIHelper, SimplexTableManager,
     LPResult, SolutionStatus, ResultFormatter

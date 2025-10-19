@@ -1,6 +1,7 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 from PyQt6.QtWidgets import QLabel, QLineEdit, QSpinBox, QLayout, QTextEdit, QTableWidget, QTableWidgetItem
 from utils.constants import ResultConstants, SolutionStatus, StatusColor
+from utils.interfaces import ITable
 from PyQt6.QtCore import Qt
 
 
@@ -98,7 +99,7 @@ class SimplexTableManager:
         """
         self.table_widget = table_widget
 
-    def display_table(self, table: Optional[Any]) -> None:
+    def display_table(self, table: Optional[ITable]) -> None:
         """
         Display the current (latest) simplex table.
         Args:
@@ -111,7 +112,7 @@ class SimplexTableManager:
         table_data = table.get_table()
         self._render_table(table_data)
 
-    def display_iteration(self, table: Any, iteration_index: int) -> None:
+    def display_iteration(self, table: ITable, iteration_index: int) -> None:
         """
         Display a specific iteration from the simplex table history.
 

@@ -1,9 +1,8 @@
 from utils import (
     LPProblem, LPResult, ConstraintData, 
-    SolutionStatus, OptimizationType
-    )
-from . import IBFSFinder, ISimplexAlgorithm
-
+    SolutionStatus, OptimizationType,
+    IBFSFinder, ISimplexAlgorithm
+)
 
 class LPSolver:
     """A tamplate for solving linear programming problems."""

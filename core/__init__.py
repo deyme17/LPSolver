@@ -1,3 +1,3 @@
-from .bfs_finder import IBFSFinder, BasicBFSFinder
-from .simplex_algorithm import SimplexAlgorithm, ISimplexAlgorithm
-from .simplex_table import SimplexTable, ITable
+from .bfs_finder import BasicBFSFinder
+from .simplex_algorithm import SimplexAlgorithm
+from .simplex_table import SimplexTable

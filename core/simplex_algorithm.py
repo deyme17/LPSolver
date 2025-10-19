@@ -1,24 +1,4 @@
-from utils import LPProblem, LPResult, BFSolution
-from abc import ABC, abstractmethod
-
-
-class ISimplexAlgorithm(ABC):
-    """
-    Class-interface for simplex algorithms that's 
-    used for solving Linear Progrmmin problem
-    """
-    @abstractmethod
-    def solve_from_bfs(self, standard_form: LPProblem, initial_solution: BFSolution) -> LPResult:
-        """
-        Solve linear programming problem starting from initial basic feasible solution.
-        Args:
-            problem (LPProblem): The linear programming problem in standard form to solve
-            initial_solution (BFSolution): Initial basic feasible solution containing
-        Returns:
-            LPResult: The solution containing optimal value and variables
-        """
-        pass
-
+from utils import LPProblem, LPResult, BFSolution, ISimplexAlgorithm
 
 
 class SimplexAlgorithm(ISimplexAlgorithm):

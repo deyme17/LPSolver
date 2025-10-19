@@ -119,13 +119,20 @@ class SimplexTable(ITable):
         self.A[leaving_row, :] = A_old[leaving_row, :] / pivot_element
         self.b[leaving_row] = b_old[leaving_row] / pivot_element
         
-        for i in range(self.A.shape[0]):
-            if i == leaving_row: continue
-            
-            for j in range(self.A.shape[1]):
-                self.A[i, j] = (A_old[i, j] * pivot_element - A_old[i, entering_col] * A_old[leaving_row, j]) / pivot_element
-            
-            self.b[i] = (b_old[i] * pivot_element - A_old[i, entering_col] * b_old[leaving_row]) / pivot_element
+        rows_mask = np.arange(self.A.shape[0]) != leaving_row
+        
+        # new_A[i,j] = (A[i,j] * pivot - A[i,entering_col] * A[leaving_row,j]) / pivot
+        multipliers = A_old[rows_mask, entering_col].reshape(-1, 1)
+        
+        self.A[rows_mask, :] = (
+            A_old[rows_mask, :] * pivot_element - 
+            multipliers * A_old[leaving_row, :]
+        ) / pivot_element
+        
+        self.b[rows_mask] = (
+            b_old[rows_mask] * pivot_element - 
+            A_old[rows_mask, entering_col] * b_old[leaving_row]
+        ) / pivot_element
 
         # update basis
         self.basis[leaving_row] = entering_col

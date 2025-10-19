@@ -63,10 +63,11 @@ class SimplexTable(ITable):
             Column index of entering variable, or None if optimal
         """
         delta = self._compute_delta()
-        positive_delta = delta > EPSILON
-        if not np.any(positive_delta):
+        positive_mask = delta > EPSILON
+        if not np.any(positive_mask):
             return None
-        return int(np.argmax(positive_delta))
+        positive_indices = np.where(positive_mask)[0]
+        return int(positive_indices[np.argmax(delta[positive_indices])])
     
     def get_leaving_variable(self, entering_col: int) -> Optional[int]:
         """
@@ -79,7 +80,7 @@ class SimplexTable(ITable):
         column = self.A[:, entering_col]
 
         positive = column > EPSILON
-        if not any(positive):
+        if not np.any(positive):
             return None
         
         ratios = np.full(len(self.b), np.inf)

@@ -2,6 +2,8 @@ from typing import Any, List, Optional
 from utils import ITable
 import numpy as np
 
+EPSILON = 1e-10
+
 
 class SimplexTable(ITable):
     """Concrete table structure for the Simplex algorithm."""
@@ -10,7 +12,7 @@ class SimplexTable(ITable):
         return ["X_basis", "ci", "B"] + [f"A{i+1}" for i in range(n)] + ["Q"]
 
     def _build_table(self) -> List[List[Any]]:
-        """Build the current simplex table for display."""
+        """Build the current simplex table."""
         rows: List[List[Any]] = []
         
         # basis rows
@@ -37,7 +39,7 @@ class SimplexTable(ITable):
         For maximization: all delta_j <= 0
         """
         delta = self._compute_delta()
-        return np.all(delta >= 1e-10)
+        return np.all(delta <= EPSILON)
     
     def is_unbounded(self, entering_col: int) -> bool:
         """
@@ -61,9 +63,10 @@ class SimplexTable(ITable):
             Column index of entering variable, or None if optimal
         """
         delta = self._compute_delta()
-        if not np.any(delta > 1e-10):
+        positive_delta = delta > EPSILON
+        if not np.any(positive_delta):
             return None
-        return int(np.argmax(delta))
+        return int(np.argmax(positive_delta))
     
     def get_leaving_variable(self, entering_col: int) -> Optional[int]:
         """
@@ -75,7 +78,7 @@ class SimplexTable(ITable):
         """
         column = self.A[:, entering_col]
 
-        positive = column > 1e-10
+        positive = column > EPSILON
         if not any(positive):
             return None
         
@@ -86,12 +89,32 @@ class SimplexTable(ITable):
     
     def pivot(self, leaving_row: int, entering_col: int) -> None:
         """
-        Perform pivot operation: Gaussian elimination around pivot element.
+        Perform pivot operation using 2x2 determinant formula.
+        For each element A[i,j]:
+            new_A[i,j] = (A[i,j] * pivot - A[i,entering_col] * A[leaving_row,j]) / pivot
         Args:
             leaving_row: Row index of leaving variable
             entering_col: Column index of entering variable
         """
-        pass
+        pivot_element = self.A[leaving_row, entering_col]
+        if abs(pivot_element) < EPSILON:
+            raise ValueError(f"Pivot element too close to zero: {pivot_element}")
+        
+        pivot_row = self.A[leaving_row].copy()
+        pivot_b = self.b[leaving_row]
+        entering_col_vec = self.A[:, entering_col].copy()
+        
+        # apply method with determinants 2x2
+        # new = (current * pivot - entering_col * pivot_row) / pivot
+        self.A = (self.A * pivot_element - np.outer(entering_col_vec, pivot_row))   / pivot_element
+        self.b = (self.b * pivot_element - entering_col_vec * pivot_b)              / pivot_element
+
+        # update basis
+        self.basis[leaving_row] = entering_col
+        
+        # update table
+        self.table = self._build_table()
+        self.save_iteration()
 
     def save_iteration(self) -> None:
         """Save current table state to iteration history."""

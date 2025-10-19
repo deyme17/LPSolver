@@ -3,7 +3,7 @@ from enum import Enum
 # app
 class AppConstants:
     WINDOW_TITLE = "Linear Programming Solver"
-    WINDOW_SIZE = (700, 700)
+    WINDOW_SIZE = (800, 700)
     TITLE_FONT_SIZE = 16
     BUTTON_HEIGHT = 40
     BUTTON_FONT_SIZE = 12
@@ -39,7 +39,7 @@ class ConstraintOperator(Enum):
 
 # result
 class ResultConstants:
-    SOLUTION_TEXT_HEIGHT = 40
+    SOLUTION_TEXT_HEIGHT = 100
     SOLUTION_TEXT_WIDTH = 400
     TABLE_MAX_HEIGHT = 600
     DECIMAL_PLACES = 6

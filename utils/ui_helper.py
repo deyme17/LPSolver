@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Optional, List, Any
 from PyQt6.QtWidgets import QLabel, QLineEdit, QSpinBox, QLayout, QTextEdit, QTableWidget, QTableWidgetItem
 from utils.constants import ResultConstants, SolutionStatus, StatusColor
-from core.simplex_table import ITable
 from PyQt6.QtCore import Qt
 
 
@@ -91,36 +90,73 @@ class ResultUIHelper:
         
 
 class SimplexTableManager:
-    """Handles displaying LP tables in the GUI"""
+    """Handles displaying LP tables (Simplex, Dual, etc.) in a QTableWidget."""
     def __init__(self, table_widget: QTableWidget):
+        """
+        Args:
+            table_widget (QTableWidget): The table widget instance in the GUI.
+        """
         self.table_widget = table_widget
 
-    def display_table(self, table: Optional[ITable]) -> None:
-        """Display any LP table implementing ITable"""
+    def display_table(self, table: Optional[Any]) -> None:
+        """
+        Display the current (latest) simplex table.
+        Args:
+            table (ITable | None): The simplex or dual table to display.
+        """
         if not table:
             self.clear()
             return
 
         table_data = table.get_table()
-        headers = table_data.get("headers", [])
-        data = table_data.get("data", [])
+        self._render_table(table_data)
+
+    def display_iteration(self, table: Any, iteration_index: int) -> None:
+        """
+        Display a specific iteration from the simplex table history.
+
+        Args:
+            table (ITable): The simplex table instance (implements iteration history).
+            iteration_index (int): Index of the iteration to display (0-based).
+        """
+        history = table.get_full_history()
+        if not history:
+            self.clear()
+            return
+
+        if iteration_index < 0 or iteration_index >= len(history):
+            raise IndexError(
+                f"Iteration index {iteration_index} out of range "
+                f"(0..{len(history)-1})"
+            )
+
+        self._render_table(history[iteration_index])
+
+    def _render_table(self, table_data: dict) -> None:
+        """Internal helper to render a table structure."""
+        headers: List[str] = table_data.get("headers", [])
+        data: List[List[str]] = table_data.get("data", [])
 
         self._setup_dimensions(len(data), len(headers))
         self.table_widget.setHorizontalHeaderLabels(headers)
         self._fill_table(data)
 
     def _setup_dimensions(self, rows: int, cols: int) -> None:
+        """Configure row and column counts before filling the table."""
+        self.table_widget.clear()
         self.table_widget.setRowCount(rows)
         self.table_widget.setColumnCount(cols)
 
-    def _fill_table(self, data: list[list]) -> None:
+    def _fill_table(self, data: List[List]) -> None:
+        """Fill the table widget with simplex data."""
         for i, row in enumerate(data):
             for j, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
+                item = QTableWidgetItem(str(value) if value is not None else "")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_widget.setItem(i, j, item)
 
     def clear(self) -> None:
+        """Completely clear the table widget."""
         self.table_widget.clear()
         self.table_widget.setRowCount(0)
         self.table_widget.setColumnCount(0)

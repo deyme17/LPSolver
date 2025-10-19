@@ -1,5 +1,4 @@
-from typing import List, Optional
-from core.simplex_table import ITable
+from typing import List, Optional, Any
 from dataclasses import dataclass, field
 
 @dataclass
@@ -31,7 +30,7 @@ class LPResult:
     status: str
     optimal_value: Optional[float] = None
     solution: Optional[List[float]] = None
-    table: Optional[ITable] = None
+    table: Optional[Any] = None
     error_message: Optional[str] = None
 
 

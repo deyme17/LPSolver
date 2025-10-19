@@ -11,23 +11,30 @@ class SimplexTable(ITable):
         n = self.problem.variables_count
         return ["X_basis", "ci", "B"] + [f"A{i+1}" for i in range(n)] + ["Q"]
 
-    def _build_table(self) -> List[List[Any]]:
-        """Build the current simplex table."""
+    def _build_table(self, entering_col: Optional[int] = None) -> List[List[Any]]:
+        """Build the current simplex table with optional Q column."""
         rows: List[List[Any]] = []
         
+        Q_values = None
+        if entering_col is not None:
+            column = self.A[:, entering_col]
+            Q_values = np.full(len(self.b), "-")
+            positive = column > EPSILON
+            Q_values[positive] = np.round(self.b[positive] / column[positive], 6)
+
         # basis rows
         for i, bi in enumerate(self.basis):
             cb = float(self.c[bi])
             Ai = self.A[i]
             Bi = float(self.b[i])
             
-            row = [f"A{bi + 1}", cb, Bi] + [float(x) for x in Ai] + ["-"]
+            q = Q_values[i] if Q_values is not None else "-"
+            row = [f"A{bi + 1}", cb, Bi] + [float(x) for x in Ai] + [q]
             rows.append(row)
-        
+
         # delta row
         delta = self._compute_delta()
         z0 = self.get_objective_value()
-        
         footer = ["Δj = cj - zj", "-", z0] + [float(d) for d in delta] + ["-"]
         rows.append(footer)
         
@@ -93,7 +100,7 @@ class SimplexTable(ITable):
     
     def pivot(self, leaving_row: int, entering_col: int) -> None:
         """
-        Perform pivot operation using 2x2 determinant formula.
+        Perform pivot operation using Gauss-Jordan elimination.
         For each element A[i,j]:
             new_A[i,j] = (A[i,j] * pivot - A[i,entering_col] * A[leaving_row,j]) / pivot
         Args:
@@ -103,21 +110,28 @@ class SimplexTable(ITable):
         pivot_element = self.A[leaving_row, entering_col]
         if abs(pivot_element) < EPSILON:
             raise ValueError(f"Pivot element too close to zero: {pivot_element}")
+
+        # copies
+        A_old = self.A.copy()
+        b_old = self.b.copy()
+
+        # Gauss-Jordan elimination
+        self.A[leaving_row, :] = A_old[leaving_row, :] / pivot_element
+        self.b[leaving_row] = b_old[leaving_row] / pivot_element
         
-        pivot_row = self.A[leaving_row].copy()
-        pivot_b = self.b[leaving_row]
-        entering_col_vec = self.A[:, entering_col].copy()
-        
-        # apply method with determinants 2x2
-        # new = (current * pivot - entering_col * pivot_row) / pivot
-        self.A = (self.A * pivot_element - np.outer(entering_col_vec, pivot_row))   / pivot_element
-        self.b = (self.b * pivot_element - entering_col_vec * pivot_b)              / pivot_element
+        for i in range(self.A.shape[0]):
+            if i == leaving_row: continue
+            
+            for j in range(self.A.shape[1]):
+                self.A[i, j] = (A_old[i, j] * pivot_element - A_old[i, entering_col] * A_old[leaving_row, j]) / pivot_element
+            
+            self.b[i] = (b_old[i] * pivot_element - A_old[i, entering_col] * b_old[leaving_row]) / pivot_element
 
         # update basis
         self.basis[leaving_row] = entering_col
-        
+
         # update table
-        self.table = self._build_table()
+        self.table = self._build_table(entering_col=entering_col)
         self.save_iteration()
 
     def save_iteration(self) -> None:

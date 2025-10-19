@@ -26,7 +26,7 @@ class LPSolver:
         try:
             if not statement.objective_coefficients or not statement.constraints:
                 return LPResult(
-                    status=SolutionStatus.ERROR,
+                    status=SolutionStatus.ERROR.value,
                     error_message="Empty objective function or constraints"
                 )
             # standard form
@@ -36,7 +36,7 @@ class LPSolver:
             initial_solution = self.bfs_finder.find_initial_bfs(standard_form)
             if not initial_solution.is_feasible():
                 return LPResult(
-                    status=SolutionStatus.INFEASIBLE,
+                    status=SolutionStatus.INFEASIBLE.value,
                     error_message="No initial BFS found"
                 )
             # apply algorithm
@@ -45,7 +45,7 @@ class LPSolver:
         
         except Exception as e:
             return LPResult(
-                status=SolutionStatus.ERROR,
+                status=SolutionStatus.ERROR.value,
                 error_message=f"Solver error: {str(e)}"
             )
         

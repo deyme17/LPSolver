@@ -29,6 +29,9 @@ class ResultSection(QGroupBox):
         # Navigation buttons for iteration control
         self.prev_btn = QPushButton("<<")
         self.next_btn = QPushButton(">>")
+        self.iteration_label = QLabel("Iteration: — / —")
+        self.iteration_label.setStyleSheet("font-weight: bold;")
+
         self.prev_btn.clicked.connect(self._show_prev_iteration)
         self.next_btn.clicked.connect(self._show_next_iteration)
         self.prev_btn.setEnabled(False)
@@ -60,6 +63,9 @@ class ResultSection(QGroupBox):
         layout = QHBoxLayout()
         layout.addStretch()
         layout.addWidget(self.prev_btn)
+        layout.addSpacing(10)
+        layout.addWidget(self.iteration_label)
+        layout.addSpacing(10)
         layout.addWidget(self.next_btn)
         layout.addStretch()
         return layout
@@ -83,6 +89,7 @@ class ResultSection(QGroupBox):
         self.solution_text.setPlainText(error_message)
         self.table_manager.clear()
         self._toggle_iteration_controls(False)
+        self.iteration_label.setText("Iteration: — / —")
     
     def clear(self) -> None:
         """Clear all result displays"""
@@ -92,6 +99,7 @@ class ResultSection(QGroupBox):
         self.solution_text.clear()
         self.table_manager.clear()
         self._toggle_iteration_controls(False)
+        self.iteration_label.setText("Iteration: — / —")
     
     # updates
     def _update_status(self, status: str) -> None:
@@ -110,18 +118,31 @@ class ResultSection(QGroupBox):
             self.solution_text.setPlainText(formatted_solution)
         else:
             self.solution_text.clear()
-    
+
+    def _update_iteration_label(self) -> None:
+        """Update iteration counter label"""
+        if not self.table_ref:
+            self.iteration_label.setText("Iteration: — / —")
+            return
+        
+        history_len = len(self.table_ref.get_full_history())
+        current = self.current_iteration + 1
+        self.iteration_label.setText(f"Iteration: {current} / {history_len}")
+
     def _update_table(self, table: Optional[ITable]) -> None:
+        """Update simplex table"""
         self.table_ref = table
         self.current_iteration = 0
 
         if not table:
             self.table_manager.clear()
             self._toggle_iteration_controls(False)
+            self.iteration_label.setText("Iteration: — / —")
             return
-        
+
         self.table_manager.display_table(table)
         self._toggle_iteration_controls(True)
+        self._update_iteration_label()
 
     # iter
     def _show_next_iteration(self) -> None:
@@ -133,6 +154,7 @@ class ResultSection(QGroupBox):
             self.current_iteration += 1
             self.table_manager.display_iteration(self.table_ref, self.current_iteration)
         self._update_iteration_buttons()
+        self._update_iteration_label()
 
     def _show_prev_iteration(self) -> None:
         """Display the previous iteration"""
@@ -142,6 +164,7 @@ class ResultSection(QGroupBox):
             self.current_iteration -= 1
             self.table_manager.display_iteration(self.table_ref, self.current_iteration)
         self._update_iteration_buttons()
+        self._update_iteration_label()
     
     def _toggle_iteration_controls(self, enable: bool) -> None:
         self.prev_btn.setEnabled(enable)

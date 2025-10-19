@@ -51,7 +51,7 @@ class SimplexAlgorithm(ISimplexAlgorithm):
     def _create_optimal_result(self) -> LPResult:
         """Create result for optimal solution."""
         return LPResult(
-            status=SolutionStatus.OPTIMAL,
+            status=SolutionStatus.OPTIMAL.value,
             optimal_value=self.table.get_objective_value(),
             solution=self.table.get_solution_vector(),
             table=self.table
@@ -60,7 +60,7 @@ class SimplexAlgorithm(ISimplexAlgorithm):
     def _create_unbounded_result(self) -> LPResult:
         """Create result for unbounded problem."""
         return LPResult(
-            status=SolutionStatus.UNBOUNDED,
+            status=SolutionStatus.UNBOUNDED.value,
             error_message="Problem is unbounded",
             table=self.table
         )
@@ -68,7 +68,7 @@ class SimplexAlgorithm(ISimplexAlgorithm):
     def _create_error_result(self, message: str) -> LPResult:
         """Create result for error case."""
         return LPResult(
-            status=SolutionStatus.ERROR,
+            status=SolutionStatus.ERROR.value,
             error_message=message,
             table=self.table
         )

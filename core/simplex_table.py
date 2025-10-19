@@ -1,67 +1,6 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List
-from utils import BFSolution, LPProblem
+from typing import Any, List, Optional
+from utils import ITable
 import numpy as np
-
-
-class ITable(ABC):
-    """Interface for LP algorithm tables (Simplex, Dual, etc.)"""
-    def __init__(self, problem: LPProblem, bfs: BFSolution):
-        """
-        Initialize simplex table based on the given problem and BFS.
-        Args:
-            problem (LPProblem): Problem in standard form (Ax = b, x >= 0)
-            bfs (BFSolution): Basic feasible solution (basis indices, values)
-        """
-        self.problem = problem
-        self.bfs = bfs
-
-        self.A = np.array(problem.get_A_matrix(), dtype=float)
-        self.b = np.array(problem.get_b_vector(), dtype=float)
-        self.c = np.array(problem.objective_coefficients, dtype=float)
-        self.basis = np.array(bfs.basis_indices, dtype=int)
-
-        self.headers = self._build_headers()
-        self.table = self._build_table()
-        self.iterations: List[Dict[str, Any]] = [
-            {"headers": self.headers, "data": self.table}
-        ]
-
-    @abstractmethod
-    def _build_headers(self) -> List[str]:
-        """Return table headers."""
-        pass
-
-    @abstractmethod
-    def _build_table(self) -> List[List[Any]]:
-        """Return initial table data."""
-        pass
-
-    def get_table(self) -> Dict[str, Any]:
-        """
-        Return the current simplex table representation.
-        Returns:
-            Dict[str, Any]: {
-                "headers": ["X_basis", "ci/cj", "B", "A1", ..., "An", "Q"],
-                "data": [[...], [...], ...]
-            }
-        """
-        return {
-            "headers": self.headers,
-            "data": self.table
-        }
-
-    def get_full_history(self) -> List[Dict[str, Any]]:
-        """
-        Return the full iteration history of simplex tables.
-        Returns:
-            List[Dict[str, Any]]: [
-                {"headers": [...], "data": [...]},
-                {"headers": [...], "data": [...]}
-            ]
-        """
-        return self.iterations
-
 
 
 class SimplexTable(ITable):
@@ -71,33 +10,111 @@ class SimplexTable(ITable):
         return ["X_basis", "ci", "B"] + [f"A{i+1}" for i in range(n)] + ["Q"]
 
     def _build_table(self) -> List[List[Any]]:
-        """
-        Build the initial simplex table.
-        Each row corresponds to a basic variable, and the last row contains Δj = cj - zj.
-        """
-        A, b, c, basis = self.A, self.b, self.c, self.basis
+        """Build the current simplex table for display."""
         rows: List[List[Any]] = []
-
+        
         # basis rows
-        for i, bi in enumerate(basis):
-            cb = c[bi]
-            Ai = A[i]
-            Bi = b[i]
-
-            # Q
-            positive_A = Ai > 0
-            Q_val = min(Bi / Ai[positive_A]) if np.any(positive_A) else None
-
-            row = [f"x{bi + 1}", cb, Bi] + list(Ai) + [Q_val]
+        for i, bi in enumerate(self.basis):
+            cb = float(self.c[bi])
+            Ai = self.A[i]
+            Bi = float(self.b[i])
+            
+            row = [f"A{bi + 1}", cb, Bi] + [float(x) for x in Ai] + ["-"]
             rows.append(row)
-
-        # delta
-        cB = c[basis]
-        z = np.dot(cB, A)
-        delta = c - z
-        z0 = np.dot(cB, b)
-
-        footer = ["Δj = cj - zj", "-", z0] + list(delta) + ["-"]
+        
+        # delta row
+        delta = self._compute_delta()
+        z0 = self.get_objective_value()
+        
+        footer = ["Δj = cj - zj", "-", z0] + [float(d) for d in delta] + ["-"]
         rows.append(footer)
-
+        
         return rows
+    
+    def is_optimal(self) -> bool:
+        """    
+        Check if current solution is optimal.
+        For maximization: all delta_j <= 0
+        """
+        delta = self._compute_delta()
+        return np.all(delta >= 1e-10)
+    
+    def is_unbounded(self, entering_col: int) -> bool:
+        """
+        Check if problem is unbounded for given entering variable.
+        """
+        return self.get_leaving_variable(entering_col) is None
+
+    def _compute_delta(self) -> np.ndarray:
+        """
+        Compute reduced costs: delta_j = c_j - z_j
+        where z_j = cB^T * A_j
+        """
+        cB = self.c[self.basis]
+        z = cB @ self.A
+        return self.c - z
+    
+    def get_entering_variable(self) -> Optional[int]:
+        """
+        Select entering variable (most positive delta for max).
+        Returns:
+            Column index of entering variable, or None if optimal
+        """
+        delta = self._compute_delta()
+        if not np.any(delta > 1e-10):
+            return None
+        return int(np.argmax(delta))
+    
+    def get_leaving_variable(self, entering_col: int) -> Optional[int]:
+        """
+        Perform min-ratio test to find leaving variable.
+        Args:
+            entering_col: Index of entering variable column
+        Returns:
+            Row index of leaving variable, or None if unbounded
+        """
+        column = self.A[:, entering_col]
+
+        positive = column > 1e-10
+        if not any(positive):
+            return None
+        
+        ratios = np.where(positive, self.b / column, np.inf)
+        leaving_row = int(np.argmin(ratios))
+
+        return leaving_row if ratios[leaving_row] != np.inf else None
+    
+    def pivot(self, leaving_row: int, entering_col: int) -> None:
+        """
+        Perform pivot operation: Gaussian elimination around pivot element.
+        Args:
+            leaving_row: Row index of leaving variable
+            entering_col: Column index of entering variable
+        """
+        pass
+
+    def save_iteration(self) -> None:
+        """Save current table state to iteration history."""
+        self.iterations.append({
+            "headers": self.headers,
+            "data": self.table
+        })
+
+    def get_solution_vector(self) -> List[float]:
+        """
+        Extract full solution vector (all variables).
+        Non-basic variables = 0, basic variables from b.
+        """
+        n = self.problem.variables_count
+        solution = [0.0] * n
+        
+        for i, var_index in enumerate(self.basis):
+            if var_index < n:
+                solution[var_index] = float(self.b[i])
+        
+        return solution
+
+    def get_objective_value(self) -> float:
+        """Get current objective function value: cB^T * b"""
+        cB = self.c[self.basis]
+        return float(cB @ self.b)

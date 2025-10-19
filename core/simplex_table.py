@@ -82,7 +82,8 @@ class SimplexTable(ITable):
         if not any(positive):
             return None
         
-        ratios = np.where(positive, self.b / column, np.inf)
+        ratios = np.full(len(self.b), np.inf)
+        ratios[positive] = self.b[positive] / column[positive] # only for positive
         leaving_row = int(np.argmin(ratios))
 
         return leaving_row if ratios[leaving_row] != np.inf else None

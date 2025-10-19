@@ -29,6 +29,9 @@ class LPSolver:
                     status=SolutionStatus.ERROR.value,
                     error_message="Empty objective function or constraints"
                 )
+            original_vars_count = len(statement.objective_coefficients)
+            is_minimization = statement.optimization_type == OptimizationType.MINIMIZE.value
+
             # standard form
             standard_form = self._build_standard_form(statement)
 
@@ -41,6 +44,12 @@ class LPSolver:
                 )
             # apply algorithm
             final_result = self.algorithm.solve_from_bfs(standard_form, initial_solution)
+
+            if is_minimization and final_result.optimal_value is not None:
+                final_result.optimal_value = -final_result.optimal_value
+            if final_result.solution is not None:
+                final_result.solution = final_result.solution[:original_vars_count]
+
             return final_result
         
         except Exception as e:
@@ -60,7 +69,7 @@ class LPSolver:
         obj_coefs = statement.objective_coefficients.copy()
 
         # if minimize -> maximize negative function
-        if statement.optimization_type == OptimizationType.MINIMIZE:
+        if statement.optimization_type == OptimizationType.MINIMIZE.value:
             obj_coefs = [-a for a in obj_coefs]
 
         slack_count = 0
@@ -90,7 +99,7 @@ class LPSolver:
             constraints.append(ConstraintData(new_coeffs, "=", free_val))
 
         return LPProblem(
-            optimization_type      = OptimizationType.MAXIMIZE,
+            optimization_type      = OptimizationType.MAXIMIZE.value,
             objective_coefficients = obj_coefs + [0] * slack_needed,
             constraints            = constraints,
             variables_count        = len(obj_coefs) + slack_needed   

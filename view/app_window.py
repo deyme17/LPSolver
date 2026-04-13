@@ -1,26 +1,35 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTabWidget, QMessageBox
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QPushButton, QTabWidget, QMessageBox, QComboBox
 )
 from PyQt6.QtGui import QFont
+from typing import Dict
 from . import InputSection, ResultSection
 from core.lp_solver import LPSolver
-from utils import StyleSheet, AppConstants
+from utils import ( 
+    StyleSheet, AppConstants,
+    IBFSFinder, ISimplexAlgorithm
+)
 
 
 class LPSolverApp(QMainWindow):
     """Main application window for LP solver"""
-    def __init__(self, input_section: InputSection, results_section: ResultSection, solver: LPSolver) -> None:
+    def __init__(self, input_section: InputSection, results_section: ResultSection,
+                 bfs_finders: Dict[str, IBFSFinder], algorithms: Dict[str, ISimplexAlgorithm]) -> None:
         """
         Initialize the main application window.
         Args:
-            input_section: InputSection widget instance for problem setup
-            results_section: ResultSection widget instance for displaying results
-            solver: LPSolver for solving the LP problem
+            input_section: InputSection widget instance for problem setup.
+            results_section: ResultSection widget instance for displaying results.
+            bfs_finders: Different implementations of BFS finder.
+            algorithms: Different implementations of simplex algorithm.
         """
         super().__init__()
         self.input_section = input_section
         self.results_section = results_section
-        self.solver = solver
+
+        self.bfs_finders = bfs_finders
+        self.algorithms = algorithms
         
         self._setup_window()
         self.init_ui()
@@ -61,7 +70,20 @@ class LPSolverApp(QMainWindow):
         self.tabs.addTab(results_tab, "Results")
         
         main_layout.addWidget(self.tabs)
-        
+
+        # bfs combo & solver combo
+        self.bfs_combo = QComboBox()
+        self.bfs_combo.addItems(self.bfs_finders.keys())
+
+        self.solver_combo = QComboBox()
+        self.solver_combo.addItems(self.algorithms.keys())
+
+        main_layout.addWidget(QLabel("BFS Finder"))
+        main_layout.addWidget(self.bfs_combo)
+
+        main_layout.addWidget(QLabel("Simplex Algorithm"))
+        main_layout.addWidget(self.solver_combo)
+                
         # controls
         buttons_layout = self._create_buttons_layout()
         main_layout.addLayout(buttons_layout)
@@ -117,7 +139,24 @@ class LPSolverApp(QMainWindow):
             problem_data, success, error_msg = self.input_section.get_data()
             if success and problem_data:
                 self.tabs.setCurrentIndex(1)
-                result = self.solver.solve(problem_data)
+
+                # get bfs_finde and solver
+                bfs_name = self.bfs_combo.currentText()
+                solver_name = self.solver_combo.currentText()
+
+                if bfs_name not in self.bfs_finders:
+                    self._show_error(f"Unknown BFS finder: {bfs_name}")
+                    return
+                if solver_name not in self.algorithms:
+                    self._show_error(f"Unknown solver: {solver_name}")
+                    return
+
+                # create LPsolver
+                solver = LPSolver(
+                    bfs_finder=self.bfs_finders[bfs_name],
+                    algorithm=self.algorithms[solver_name]
+                )
+                result = solver.solve(problem_data)
                 self.results_section.display_results(result)
             else:
                 self._show_error(error_msg)

@@ -5,7 +5,7 @@ from .lp_solver import LPSolver
 from .simplex_table import SimplexTable
 
 # bfs finders
-from .bfs.basic_finder import (
+from .bfs import (
     Basic_BFSFinder, TwoPhase_BFSFinder, BigM_BFSFinder
 )
 
@@ -18,7 +18,7 @@ bfs_finders: Dict[str, IBFSFinder] = {
 # solvers
 from .solvers import SimplexAlgorithm, BranchAndBounds
 
-solvers: Dict[str, ISimplexAlgorithm] = {
+algorithms: Dict[str, ISimplexAlgorithm] = {
     "Basic Simplex method": SimplexAlgorithm(),
     "Branch and Bounds method (int)": BranchAndBounds(),
 }

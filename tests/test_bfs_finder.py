@@ -1,17 +1,17 @@
 import pytest
-from core.bfs_finder import BasicBFSFinder
+from core.bfs.basic_finder import Basic_BFSFinder
 from utils import LPProblem, ConstraintData, OptimizationType
 
 
-class TestBasicBFSFinder:
-    """Tests for BasicBFSFinder class"""
+class TestBasic_BFSFinder:
+    """Tests for Basic_BFSFinder class"""
     
     @pytest.fixture
     def finder(self):
-        """Create BasicBFSFinder instance"""
-        return BasicBFSFinder()
+        """Create Basic_BFSFinder instance"""
+        return Basic_BFSFinder()
     
-    def test_simple_two_constraints(self, finder: BasicBFSFinder):
+    def test_simple_two_constraints(self, finder: Basic_BFSFinder):
         """Test BFS with 2 variables and 2 slack variables"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -31,7 +31,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 4.0, 5.0]
         assert result.is_feasible() is True
     
-    def test_three_constraints(self, finder: BasicBFSFinder):
+    def test_three_constraints(self, finder: Basic_BFSFinder):
         """Test BFS with 3 constraints"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -51,7 +51,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 0.0, 10.0, 15.0, 20.0]
         assert result.is_feasible() is True
     
-    def test_single_constraint(self, finder: BasicBFSFinder):
+    def test_single_constraint(self, finder: Basic_BFSFinder):
         """Test BFS with single constraint"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -69,7 +69,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 8.0]
         assert result.is_feasible() is True
     
-    def test_four_variables_two_constraints(self, finder: BasicBFSFinder):
+    def test_four_variables_two_constraints(self, finder: Basic_BFSFinder):
         """Test with more variables than constraints"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -88,7 +88,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 0.0, 0.0, 6.0, 9.0]
         assert result.is_feasible() is True
     
-    def test_zero_free_values(self, finder: BasicBFSFinder):
+    def test_zero_free_values(self, finder: Basic_BFSFinder):
         """Test when constraints have zero on RHS"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -107,7 +107,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 0.0, 0.0]
         assert result.is_feasible() is True
     
-    def test_large_free_values(self, finder: BasicBFSFinder):
+    def test_large_free_values(self, finder: Basic_BFSFinder):
         """Test with large RHS values"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -126,7 +126,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 1000.0, 5000.0]
         assert result.is_feasible() is True
     
-    def test_fractional_free_values(self, finder: BasicBFSFinder):
+    def test_fractional_free_values(self, finder: Basic_BFSFinder):
         """Test with fractional RHS values"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -145,7 +145,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 3.5, 7.25]
         assert result.is_feasible() is True
     
-    def test_mixed_positive_zero_values(self, finder: BasicBFSFinder):
+    def test_mixed_positive_zero_values(self, finder: Basic_BFSFinder):
         """Test mix of positive and zero RHS values"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -165,7 +165,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 0.0, 5.0, 0.0, 10.0]
         assert result.is_feasible() is True
     
-    def test_equality_constraints_only(self, finder: BasicBFSFinder):
+    def test_equality_constraints_only(self, finder: Basic_BFSFinder):
         """Test problem with only equality constraints (no slack vars)"""
         # edge case - no slack variables
         problem = LPProblem(
@@ -186,7 +186,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [3.0, 4.0]
         assert result.is_feasible() is True
     
-    def test_one_variable_one_constraint(self, finder: BasicBFSFinder):
+    def test_one_variable_one_constraint(self, finder: Basic_BFSFinder):
         """Test minimal case: 1 variable, 1 constraint"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -204,7 +204,7 @@ class TestBasicBFSFinder:
         assert result.full_solution == [0.0, 10.0]
         assert result.is_feasible() is True
     
-    def test_basis_indices_order(self, finder: BasicBFSFinder):
+    def test_basis_indices_order(self, finder: Basic_BFSFinder):
         """Test that basis indices are in correct order"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -225,7 +225,7 @@ class TestBasicBFSFinder:
         assert result.basic_values == [2, 4, 6, 8]
         assert result.full_solution == [0.0, 0.0, 0.0, 2.0, 4.0, 6.0, 8.0]
     
-    def test_is_feasible_all_positive(self, finder: BasicBFSFinder):
+    def test_is_feasible_all_positive(self, finder: Basic_BFSFinder):
         """Test is_feasible returns True for all positive values"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -240,7 +240,7 @@ class TestBasicBFSFinder:
         result = finder.find_initial_bfs(problem)
         assert result.is_feasible() is True
     
-    def test_is_feasible_with_zeros(self, finder: BasicBFSFinder):
+    def test_is_feasible_with_zeros(self, finder: Basic_BFSFinder):
         """Test is_feasible returns True when some values are zero"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,

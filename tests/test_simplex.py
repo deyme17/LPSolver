@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from core.lp_solver import LPSolver
-from core.bfs_finder import BasicBFSFinder
-from core.simplex_algorithm import SimplexAlgorithm
+from core.bfs.basic_finder import Basic_BFSFinder
+from core.solvers.simplex_algorithm import SimplexAlgorithm
 from utils import LPProblem, ConstraintData, OptimizationType, SolutionStatus
 
 
@@ -12,7 +12,7 @@ class TestFullSimplexIntegration:
     @pytest.fixture
     def solver(self):
         """Create complete solver with all components"""
-        bfs_finder = BasicBFSFinder()
+        bfs_finder = Basic_BFSFinder()
         algorithm = SimplexAlgorithm(max_iterations=100)
         return LPSolver(bfs_finder, algorithm)
     

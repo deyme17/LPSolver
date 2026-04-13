@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 from core.lp_solver import LPSolver
-from core import SimplexAlgorithm, BasicBFSFinder
+from core import solvers, bfs_finders
 
 from view.app_window import LPSolverApp
 from view import InputSection, ResultSection
@@ -12,8 +12,8 @@ def main():
     app = QApplication(sys.argv)
 
     solver = LPSolver(
-        bfs_finder=BasicBFSFinder(),
-        algorithm=SimplexAlgorithm()
+        bfs_finders=bfs_finders,
+        solvers=solvers
     )
     window = LPSolverApp(
         input_section=InputSection(),

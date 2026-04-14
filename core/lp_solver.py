@@ -99,8 +99,8 @@ class LPSolver:
             constraints.append(ConstraintData(new_coeffs, "=", free_val))
 
         return LPProblem(
-            optimization_type      = OptimizationType.MAXIMIZE.value,
+            optimization_type = OptimizationType.MAXIMIZE.value,
             objective_coefficients = obj_coefs + [0] * slack_needed,
-            constraints            = constraints,
-            variables_count        = len(obj_coefs) + slack_needed   
+            constraints = constraints,
+            variables_count = len(obj_coefs) + slack_needed   
         )

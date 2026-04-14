@@ -16,7 +16,7 @@ bfs_finders: Dict[str, IBFSFinder] = {
 }
 
 # solvers
-from .solvers import SimplexAlgorithm, BranchAndBounds
+from .algorithms import SimplexAlgorithm, BranchAndBounds
 
 algorithms: Dict[str, ISimplexAlgorithm] = {
     "Basic Simplex method": SimplexAlgorithm(),

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from core.lp_solver import LPSolver
 from core.bfs.basic_finder import Basic_BFSFinder
-from core.solvers.simplex_algorithm import SimplexAlgorithm
+from core.algorithms.simplex_algorithm import SimplexAlgorithm
 from utils import LPProblem, ConstraintData, OptimizationType, SolutionStatus
 
 

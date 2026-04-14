@@ -215,7 +215,7 @@ class InputSection(QGroupBox):
                 optimization_type=self.optimization_type.currentText(),
                 objective_coefficients=objective_coeffs,
                 constraints=constraints_data,
-                integer_indicies=int_indices,
+                integer_indices=int_indices,
                 variables_count=len(objective_coeffs)
             ), True, ""
         except ValueError as e:

@@ -154,8 +154,8 @@ class LPSolverApp(QMainWindow):
                 # create solver
                 solver_cls = self.solvers[solver_name]
                 solver: ISolver = solver_cls(self.bfs_finders[bfs_name])
-                
-                if problem_data.integer_indicies is not None and not solver.SUPPORT_INTEGER_CONSTRAINTS:
+
+                if problem_data.integer_indices is not None and not solver.SUPPORT_INTEGER_CONSTRAINTS:
                     self._show_error(f"This method doesn't support integer constraints: {solver.__class__.__name__}")
                     return
                 

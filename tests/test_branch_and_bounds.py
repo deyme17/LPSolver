@@ -32,7 +32,7 @@ def make_problem(
     obj_coefs,
     constraints,
     opt_type=OptimizationType.MAXIMIZE.value,
-    integer_indicies=None,
+    integer_indices=None,
 ):
     """Convenience factory for LPProblem."""
     return LPProblem(
@@ -43,7 +43,7 @@ def make_problem(
             for c in constraints
         ],
         variables_count=len(obj_coefs),
-        integer_indicies=integer_indicies,
+        integer_indices=integer_indices,
     )
 
 
@@ -79,7 +79,7 @@ class TestBranchAndBoundSolverBasic:
                 ([1.0, 0.0], "<=", 3.5),
                 ([0.0, 1.0], "<=", 3.5),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -106,7 +106,7 @@ class TestBranchAndBoundSolverBasic:
                 ([0.0, 1.0], "<=", 10.0),
             ],
             opt_type=OptimizationType.MINIMIZE.value,
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -127,7 +127,7 @@ class TestBranchAndBoundSolverBasic:
                 ([1.0, 0.0], "<=", 4.0),
                 ([0.0, 1.0], "<=", 4.0),
             ],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -138,7 +138,7 @@ class TestBranchAndBoundSolverBasic:
 
     def test_no_integer_indices_delegates_to_simplex(self):
         """
-        If integer_indicies is None, B&B must delegate directly to
+        If integer_indices is None, B&B must delegate directly to
         SimplexSolver without any branching.
         """
         prob = make_problem(
@@ -147,7 +147,7 @@ class TestBranchAndBoundSolverBasic:
                 ([1.0, 1.0], "<=", 4.0),
                 ([2.0, 1.0], "<=", 6.0),
             ],
-            integer_indicies=None,
+            integer_indices=None,
         )
         solver = default_solver()
 
@@ -167,7 +167,7 @@ class TestBranchAndBoundSolverBasic:
         prob = make_problem(
             obj_coefs=[3.0],
             constraints=[([1.0], "<=", 2.7)],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -195,7 +195,7 @@ class TestBranchAndBoundSolverEdge:
                 ([1.0], ">=", 5.0),
                 ([1.0], "<=", 3.0),
             ],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -216,7 +216,7 @@ class TestBranchAndBoundSolverEdge:
                 ([1.0, 0.0], "<=", 5.5),
                 ([0.0, 1.0], "<=", 5.5),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = BranchAndBoundSolver(BigM_BFSFinder(), max_nodes=1)
         result = solver.solve(prob)
@@ -238,7 +238,7 @@ class TestBranchAndBoundSolverEdge:
                 ([0.0, 1.0], "<=", 1.0),
                 ([0.0, 1.0], ">=", 1.0),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -262,7 +262,7 @@ class TestBranchAndBoundSolverEdge:
                 ([1.0, 0.0], "<=", 3.5),
                 ([0.0, 1.0], "<=", 3.5),
             ],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -276,7 +276,7 @@ class TestBranchAndBoundSolverEdge:
         prob = make_problem(
             obj_coefs=[1.0],
             constraints=[([1.0], "<=", 1_000_000.0)],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -433,19 +433,19 @@ class TestBranchAndBoundSolverPrivate:
         prob = make_problem(
             obj_coefs=[1.0, 1.0],
             constraints=[([1.0, 1.0], "<=", 4.0)],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         new_prob = self.solver._add_constraint(prob, 0, "<=", 1.0)
-        assert new_prob.integer_indicies == [0, 1]
+        assert new_prob.integer_indices == [0, 1]
 
     def test_add_constraint_integer_indices_none(self):
         prob = make_problem(
             obj_coefs=[1.0],
             constraints=[([1.0], "<=", 5.0)],
-            integer_indicies=None,
+            integer_indices=None,
         )
         new_prob = self.solver._add_constraint(prob, 0, "<=", 3.0)
-        assert new_prob.integer_indicies is None
+        assert new_prob.integer_indices is None
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +472,7 @@ class TestBranchAndBoundSolverIntegration:
                 ([ 3.0,  2.0], "<=", 12.0),
                 ([ 2.0,  3.0], "<=", 12.0),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -493,7 +493,7 @@ class TestBranchAndBoundSolverIntegration:
                 ([1.0, 0.0], "<=", 3.5),
                 ([0.0, 1.0], "<=", 3.5),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         assert solver.nodes_explored == 0
@@ -509,7 +509,7 @@ class TestBranchAndBoundSolverIntegration:
                 ([1.0, 0.0], "<=", 4.5),
                 ([0.0, 1.0], "<=", 4.5),
             ],
-            integer_indicies=[0, 1],
+            integer_indices=[0, 1],
         )
         solver = default_solver()
         result = solver.solve(prob)
@@ -537,7 +537,7 @@ class TestBranchAndBoundSolverIntegration:
                 ([1.0], ">=", 1.1),
                 ([1.0], "<=", 1.9),
             ],
-            integer_indicies=[0],
+            integer_indices=[0],
         )
         solver = default_solver()
         result = solver.solve(prob)

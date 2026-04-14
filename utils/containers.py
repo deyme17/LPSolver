@@ -15,7 +15,7 @@ class LPProblem:
     optimization_type: str = ""
     objective_coefficients: List[float] = field(default_factory=list)
     constraints: List[ConstraintData] = field(default_factory=list)
-    integer_indicies: Optional[List[int]] = None
+    integer_indices: Optional[List[int]] = None
     variables_count: int = 0
     
     def get_A_matrix(self) -> List[List[float]]:

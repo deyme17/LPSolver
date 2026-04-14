@@ -63,6 +63,19 @@ class ITable(ABC):
         return self.iterations
     
 
+class ISolver(ABC):
+    """Class-interface for solving linear programming problems."""
+    @abstractmethod
+    def solve(self, statement: LPProblem) -> LPResult:
+        """
+        Solve a linear programming problem.
+        Args:
+            statement (LPProblem): The linear programming problem to solve
+        Returns:
+            LPResult: The solution containing optimal value and variables
+        """
+        pass
+
 
 class IBFSFinder(ABC):
     """Class-interface for finding initial basic feasible solutions (BFS) for linear programming problems."""

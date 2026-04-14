@@ -10,8 +10,7 @@ class TestBuildStandardForm:
     def solver(self):
         """Create solver instance with mocked dependencies"""
         bfs_finder = Mock()
-        algorithm = Mock()
-        return SimplexSolver(bfs_finder, algorithm)
+        return SimplexSolver(bfs_finder)
     
     def test_maximize_with_less_equal_constraints(self, solver: SimplexSolver):
         """Test maximization problem with <= constraints"""

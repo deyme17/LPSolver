@@ -25,12 +25,6 @@ class SimplexSolver(ISolver):
                     status=SolutionStatus.ERROR.value,
                     error_message="Empty objective function or constraints"
                 )
-            if statement.integer_indicies is not None:
-                return LPResult(
-                    status=SolutionStatus.ERROR.value,
-                    error_message="SimplexSolver doesn't support integer constraints"
-                )
-            
             original_vars_count = len(statement.objective_coefficients)
             is_minimization = statement.optimization_type == OptimizationType.MINIMIZE.value
 

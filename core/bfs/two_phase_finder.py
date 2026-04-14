@@ -2,7 +2,7 @@ import numpy as np
 from typing import List, Optional
 from utils import LPProblem, BFSolution, IBFSFinder, ConstraintData
 from utils.constants import OptimizationType as OPT
-from simplex_table import SimplexTable
+from ..simplex_table import SimplexTable
 
 EPSILON = 1e-10
 

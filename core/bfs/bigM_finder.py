@@ -19,10 +19,6 @@ class BigM_BFSFinder(IBFSFinder):
         self.big_m = big_m
 
     def find_initial_bfs(self, standard_form: LPProblem) -> BFSolution:
-        """
-        Augment the problem with artificial variables and return the
-        modified LPProblem together with the initial BFSolution.
-        """
         m = len(standard_form.constraints)
         n = standard_form.variables_count   # variables before augmentation
 
@@ -45,7 +41,7 @@ class BigM_BFSFinder(IBFSFinder):
         standard_form.objective_coefficients += [-self.big_m] * num_artificials
 
         art_col = 0
-        basis_indices: List[int] = []
+        basis_indices = []
 
         for i, constraint in enumerate(standard_form.constraints):
             # add zeros for all artificial columns first

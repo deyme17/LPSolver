@@ -14,7 +14,7 @@ class TwoPhase_BFSFinder(IBFSFinder):
     Phase 1: build a temporary LPProblem with artificial variables and
              solve it using SimplexTable: max -sum(artificials).
              If Phase-1 optimum < 0, the original problem is infeasible.
-    Phase 2: Is held in some ISimplexAlgorithm.
+    Phase 2: Is held in SimplexAlgorithm.
     """
     def __init__(self, max_iterations: int = 10_000) -> None:
         self.max_iterations = max_iterations

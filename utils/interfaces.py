@@ -61,20 +61,6 @@ class ITable(ABC):
             ]
         """
         return self.iterations
-    
-
-class ISolver(ABC):
-    """Class-interface for solving linear programming problems."""
-    @abstractmethod
-    def solve(self, statement: LPProblem) -> LPResult:
-        """
-        Solve a linear programming problem.
-        Args:
-            statement (LPProblem): The linear programming problem to solve
-        Returns:
-            LPResult: The solution containing optimal value and variables
-        """
-        pass
 
 
 class IBFSFinder(ABC):
@@ -91,19 +77,22 @@ class IBFSFinder(ABC):
         pass
 
 
-
-class ISimplexAlgorithm(ABC):
-    """
-    Class-interface for simplex algorithms that's 
-    used for solving Linear Progrmmin problem
-    """
-    @abstractmethod
-    def solve_from_bfs(self, standard_form: LPProblem, initial_solution: BFSolution) -> LPResult:
+class ISolver(ABC):
+    """Class-interface for solving linear programming problems."""
+    SUPPORT_INTEGER_CONSTRAINTS = False
+    def __init__(self, bfs_finder: IBFSFinder):
         """
-        Solve linear programming problem starting from initial basic feasible solution.
         Args:
-            problem (LPProblem): The linear programming problem in standard form to solve
-            initial_solution (BFSolution): Initial basic feasible solution containing
+            bfs_finder: Component for finding basic feasible solutions
+        """Асщтыекф
+        self.bfs_finder = bfs_finder
+        
+    @abstractmethod
+    def solve(self, statement: LPProblem) -> LPResult:
+        """
+        Solve a linear programming problem.
+        Args:
+            statement (LPProblem): The linear programming problem to solve
         Returns:
             LPResult: The solution containing optimal value and variables
         """

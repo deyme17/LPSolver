@@ -1,8 +1,8 @@
-from utils import LPProblem, LPResult, BFSolution, ISimplexAlgorithm, SolutionStatus
+from utils import LPProblem, LPResult, BFSolution, SolutionStatus
 from ..simplex_table import SimplexTable
 
 
-class SimplexAlgorithm(ISimplexAlgorithm):
+class SimplexAlgorithm:
     """Implementation of the Simplex Method for Linear Programming."""
     def __init__(self, max_iterations: int = 1000):
         """

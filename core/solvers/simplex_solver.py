@@ -1,19 +1,15 @@
+from ..algorithms import SimplexAlgorithm
 from utils import (
     LPProblem, LPResult, ConstraintData, 
     SolutionStatus, OptimizationType,
-    IBFSFinder, ISimplexAlgorithm
+    IBFSFinder, ISolver
 )
 
-class LPSolver:
+class SimplexSolver(ISolver):
     """A tamplate for solving linear programming problems."""
-    def __init__(self, bfs_finder: IBFSFinder, algorithm: ISimplexAlgorithm) -> None:
-        """
-        Args:
-            bfs_finder: Component for finding basic feasible solutions
-            algorithm: Simplex algorithm implementation for optimization
-        """
+    def __init__(self, bfs_finder: IBFSFinder) -> None:
         self.bfs_finder = bfs_finder
-        self.algorithm = algorithm
+        self.algorithm = SimplexAlgorithm()
 
     def solve(self, statement: LPProblem) -> LPResult:
         """
@@ -29,6 +25,12 @@ class LPSolver:
                     status=SolutionStatus.ERROR.value,
                     error_message="Empty objective function or constraints"
                 )
+            if statement.integer_indicies is not None:
+                return LPResult(
+                    status=SolutionStatus.ERROR.value,
+                    error_message="SimplexSolver doesn't support integer constraints"
+                )
+            
             original_vars_count = len(statement.objective_coefficients)
             is_minimization = statement.optimization_type == OptimizationType.MINIMIZE.value
 
@@ -102,5 +104,5 @@ class LPSolver:
             optimization_type = OptimizationType.MAXIMIZE.value,
             objective_coefficients = obj_coefs + [0] * slack_needed,
             constraints = constraints,
-            variables_count = len(obj_coefs) + slack_needed   
+            variables_count = len(obj_coefs) + slack_needed
         )

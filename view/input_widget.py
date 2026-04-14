@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from PyQt6.QtWidgets import (
     QGroupBox, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, 
-    QComboBox, QPushButton, QScrollArea, QWidget
+    QComboBox, QPushButton, QScrollArea, QWidget, QCheckBox
 )
 from utils import (
     UIHelper, InputWidgetConstants, InputValidator,
@@ -16,6 +16,7 @@ class InputSection(QGroupBox):
         super().__init__("Problem Configuration")
         self.constraint_rows: List[ConstraintRow] = []
         self.objective_inputs: List[QLineEdit] = []
+        self.integer_checkboxes: List[QCheckBox] = []
         self._init_widgets()
         self._init_ui()
     
@@ -63,6 +64,15 @@ class InputSection(QGroupBox):
         layout.addWidget(self._create_constraints_label())
         self.constraints_scroll = self._create_constraints_scroll()
         layout.addWidget(self.constraints_scroll)
+
+        # integer constraints
+        layout.addWidget(UIHelper.create_label(
+            "Integer Constraints (select variables that must be integers):",
+            style="color: #aaaaaa; font-style: italic;"
+        ))
+        integer_container = QWidget()
+        self.integer_vars_layout = QHBoxLayout(integer_container)
+        layout.addWidget(integer_container)
     
     def _create_optimization_combo(self) -> QComboBox:
         """Create optimization type combo box"""
@@ -125,7 +135,19 @@ class InputSection(QGroupBox):
         constraint_count = self.constraint_count.value()
         
         self._update_objective_inputs(var_count)
+        self._update_integer_selection(var_count)
         self._update_constraint_rows(var_count, constraint_count)
+
+    def _update_integer_selection(self, var_count: int) -> None:
+        """Create checkboxes for each variable to mark as integer"""
+        UIHelper.clear_layout(self.integer_vars_layout)
+        self.integer_checkboxes.clear()
+        
+        for i in range(var_count):
+            cb = QCheckBox(f"x{i+1}")
+            self.integer_checkboxes.append(cb)
+            self.integer_vars_layout.addWidget(cb)
+        self.integer_vars_layout.addStretch()
     
     def _update_objective_inputs(self, var_count: int) -> None:
         """Update objective function coefficient inputs"""
@@ -186,12 +208,14 @@ class InputSection(QGroupBox):
             objective_coeffs = InputValidator.validate_coefficients(
                 self.objective_inputs
             )
+            int_indices = [i for i, cb in enumerate(self.integer_checkboxes) if cb.isChecked()]
             constraints_data = self._parse_constraints()
             
             return LPProblem(
                 optimization_type=self.optimization_type.currentText(),
                 objective_coefficients=objective_coeffs,
                 constraints=constraints_data,
+                integer_indicies=int_indices,
                 variables_count=len(objective_coeffs)
             ), True, ""
         except ValueError as e:

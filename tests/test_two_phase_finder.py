@@ -6,7 +6,7 @@ TwoPhase_BFSFinder expects a problem already in standard form:
   - slack columns are already present in the constraint matrix
   - variables_count includes original + slack vars
 
-This mirrors what LPSolver._build_standard_form produces before
+This mirrors what SimplexSolver._build_standard_form produces before
 calling find_initial_bfs.
 """
 

@@ -5,31 +5,31 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont
 from typing import Dict
 from . import InputSection, ResultSection
-from core.lp_solver import LPSolver
+from core.solvers.simplex_solver import SimplexSolver
 from utils import ( 
     StyleSheet, AppConstants,
-    IBFSFinder, ISimplexAlgorithm
+    IBFSFinder, ISolver
 )
 
 
 class LPSolverApp(QMainWindow):
     """Main application window for LP solver"""
     def __init__(self, input_section: InputSection, results_section: ResultSection,
-                 bfs_finders: Dict[str, IBFSFinder], algorithms: Dict[str, ISimplexAlgorithm]) -> None:
+                 bfs_finders: Dict[str, IBFSFinder], solvers: Dict[str, ISolver]) -> None:
         """
         Initialize the main application window.
         Args:
             input_section: InputSection widget instance for problem setup.
             results_section: ResultSection widget instance for displaying results.
             bfs_finders: Different implementations of BFS finder.
-            algorithms: Different implementations of simplex algorithm.
+            solvers: Different implementations of simplex algorithm.
         """
         super().__init__()
         self.input_section = input_section
         self.results_section = results_section
 
         self.bfs_finders = bfs_finders
-        self.algorithms = algorithms
+        self.solvers = solvers
         
         self._setup_window()
         self.init_ui()
@@ -76,7 +76,7 @@ class LPSolverApp(QMainWindow):
         self.bfs_combo.addItems(self.bfs_finders.keys())
 
         self.solver_combo = QComboBox()
-        self.solver_combo.addItems(self.algorithms.keys())
+        self.solver_combo.addItems(self.solvers.keys())
 
         main_layout.addWidget(QLabel("BFS Finder"))
         main_layout.addWidget(self.bfs_combo)
@@ -147,15 +147,13 @@ class LPSolverApp(QMainWindow):
                 if bfs_name not in self.bfs_finders:
                     self._show_error(f"Unknown BFS finder: {bfs_name}")
                     return
-                if solver_name not in self.algorithms:
+                if solver_name not in self.solvers:
                     self._show_error(f"Unknown solver: {solver_name}")
                     return
 
-                # create LPsolver
-                solver = LPSolver(
-                    bfs_finder=self.bfs_finders[bfs_name],
-                    algorithm=self.algorithms[solver_name]
-                )
+                # create solver
+                solver_cls = self.solvers[solver_name]
+                solver: ISolver = solver_cls(self.bfs_finders[bfs_name])
                 result = solver.solve(problem_data)
                 self.results_section.display_results(result)
             else:

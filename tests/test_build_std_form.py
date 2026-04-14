@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock
-from core.lp_solver import LPSolver, LPProblem, OptimizationType, ConstraintData
+from core.solvers.simplex_solver import SimplexSolver, LPProblem, OptimizationType, ConstraintData
 
 
 class TestBuildStandardForm:
@@ -11,9 +11,9 @@ class TestBuildStandardForm:
         """Create solver instance with mocked dependencies"""
         bfs_finder = Mock()
         algorithm = Mock()
-        return LPSolver(bfs_finder, algorithm)
+        return SimplexSolver(bfs_finder, algorithm)
     
-    def test_maximize_with_less_equal_constraints(self, solver: LPSolver):
+    def test_maximize_with_less_equal_constraints(self, solver: SimplexSolver):
         """Test maximization problem with <= constraints"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -38,7 +38,7 @@ class TestBuildStandardForm:
         assert result.constraints[1].operator == "="
         assert result.constraints[1].free_val == 5
     
-    def test_minimize_converts_to_maximize(self, solver: LPSolver):
+    def test_minimize_converts_to_maximize(self, solver: SimplexSolver):
         """Test minimization converted to maximization"""
         problem = LPProblem(
             optimization_type=OptimizationType.MINIMIZE.value,
@@ -55,7 +55,7 @@ class TestBuildStandardForm:
         # 2 original vars + 1 slack
         assert result.objective_coefficients == [-2, -3, 0]
     
-    def test_greater_equal_constraints(self, solver: LPSolver):
+    def test_greater_equal_constraints(self, solver: SimplexSolver):
         """Test >= constraints converted to equality"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -73,7 +73,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].operator == "="
         assert result.constraints[0].free_val == 3
     
-    def test_negative_free_value_with_less_equal(self, solver: LPSolver):
+    def test_negative_free_value_with_less_equal(self, solver: SimplexSolver):
         """Test negative free val with <= flips to >="""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -90,7 +90,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].coefficients == [-2, -3, -1]
         assert result.constraints[0].free_val == 6
     
-    def test_negative_free_value_with_greater_equal(self, solver: LPSolver):
+    def test_negative_free_value_with_greater_equal(self, solver: SimplexSolver):
         """Test negative free val with >= flips to <="""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -107,7 +107,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].coefficients == [-1, -2, 1]
         assert result.constraints[0].free_val == 4
     
-    def test_equality_constraints(self, solver: LPSolver):
+    def test_equality_constraints(self, solver: SimplexSolver):
         """Test equality constraints remain unchanged"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -126,7 +126,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].free_val == 10
         assert result.objective_coefficients == [1, 2]  # No slack vars added
     
-    def test_multiple_mixed_constraints(self, solver: LPSolver):
+    def test_multiple_mixed_constraints(self, solver: SimplexSolver):
         """Test problem with multiple constraint types"""
         problem = LPProblem(
             optimization_type=OptimizationType.MINIMIZE.value,
@@ -158,7 +158,7 @@ class TestBuildStandardForm:
         assert result.constraints[2].coefficients == [3, 4, 2, 0, 0]
         assert result.constraints[2].operator == "="
     
-    def test_variables_count_updated(self, solver: LPSolver):
+    def test_variables_count_updated(self, solver: SimplexSolver):
         """Test variables_count includes slack variables"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -175,7 +175,7 @@ class TestBuildStandardForm:
         # 2 original + 2 slack
         assert result.variables_count == 4
     
-    def test_constraint_with_whitespace_operator(self, solver: LPSolver):
+    def test_constraint_with_whitespace_operator(self, solver: SimplexSolver):
         """Test operators with extra whitespace are handled"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -191,7 +191,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].operator == "="
         assert result.constraints[0].coefficients == [2, 1]
     
-    def test_single_variable_problem(self, solver: LPSolver):
+    def test_single_variable_problem(self, solver: SimplexSolver):
         """Test problem with single variable"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -208,7 +208,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].coefficients == [1, 1]
         assert result.variables_count == 2
     
-    def test_zero_coefficients_preserved(self, solver: LPSolver):
+    def test_zero_coefficients_preserved(self, solver: SimplexSolver):
         """Test that zero coefficients are preserved"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -225,7 +225,7 @@ class TestBuildStandardForm:
         # 3 original vars + 1 slack var
         assert result.constraints[0].coefficients == [0, 1, 2, 1]
     
-    def test_two_constraints_different_types(self, solver: LPSolver):
+    def test_two_constraints_different_types(self, solver: SimplexSolver):
         """Test two constraints with different operators"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -243,7 +243,7 @@ class TestBuildStandardForm:
         assert result.constraints[0].coefficients == [1, 1, 1, 0]
         assert result.constraints[1].coefficients == [1, 2, 0, -1]
     
-    def test_all_equality_constraints(self, solver: LPSolver):
+    def test_all_equality_constraints(self, solver: SimplexSolver):
         """Test when all constraints are equalities"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -263,7 +263,7 @@ class TestBuildStandardForm:
         assert result.objective_coefficients == [1, 2]
         assert result.variables_count == 2
     
-    def test_mixed_equality_and_inequality(self, solver: LPSolver):
+    def test_mixed_equality_and_inequality(self, solver: SimplexSolver):
         """Test mix of = and <= constraints"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -284,7 +284,7 @@ class TestBuildStandardForm:
         assert result.constraints[1].coefficients == [2, 1, 1]
         assert result.constraints[2].coefficients == [1, 3, 0]
     
-    def test_operator_case_sensitivity(self, solver: LPSolver):
+    def test_operator_case_sensitivity(self, solver: SimplexSolver):
         """Test that operator comparison is case-sensitive"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,

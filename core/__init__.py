@@ -1,7 +1,7 @@
-from utils import ISimplexAlgorithm, IBFSFinder
+from utils import ISolver, IBFSFinder
 from typing import Dict
 
-from .lp_solver import LPSolver
+from .algorithms import SimplexAlgorithm
 from .simplex_table import SimplexTable
 
 # bfs finders
@@ -16,9 +16,8 @@ bfs_finders: Dict[str, IBFSFinder] = {
 }
 
 # solvers
-from .algorithms import SimplexAlgorithm, BranchAndBounds
+from .solvers.simplex_solver import SimplexSolver
 
-algorithms: Dict[str, ISimplexAlgorithm] = {
-    "Basic Simplex method": SimplexAlgorithm(),
-    "Branch and Bounds method (int)": BranchAndBounds(),
+solvers: Dict[str, type[ISolver]] = {
+    "Simplex method": SimplexSolver,
 }

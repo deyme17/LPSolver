@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from core.lp_solver import LPSolver
+from core.solvers.simplex_solver import SimplexSolver
 from core.bfs.basic_finder import Basic_BFSFinder
 from core.algorithms.simplex_algorithm import SimplexAlgorithm
 from utils import LPProblem, ConstraintData, OptimizationType, SolutionStatus
@@ -14,9 +14,9 @@ class TestFullSimplexIntegration:
         """Create complete solver with all components"""
         bfs_finder = Basic_BFSFinder()
         algorithm = SimplexAlgorithm(max_iterations=100)
-        return LPSolver(bfs_finder, algorithm)
+        return SimplexSolver(bfs_finder, algorithm)
     
-    def test_complete_minimization_problem(self, solver: LPSolver):
+    def test_complete_minimization_problem(self, solver: SimplexSolver):
         """
         Complete test: Minimize z = -3x1 - 2x2
         Subject to:
@@ -51,7 +51,7 @@ class TestFullSimplexIntegration:
         assert abs(result.solution[0] - 1.0) < 1e-6  # x1
         assert abs(result.solution[1] - 3.0) < 1e-6  # x2
     
-    def test_unbounded_problem(self, solver: LPSolver):
+    def test_unbounded_problem(self, solver: SimplexSolver):
         """
         Test unbounded problem: Maximize z = x1 + x2
         Subject to:
@@ -75,7 +75,7 @@ class TestFullSimplexIntegration:
         assert result.error_message is not None
         assert "unbounded" in result.error_message.lower()
     
-    def test_three_variables_problem(self, solver: LPSolver):
+    def test_three_variables_problem(self, solver: SimplexSolver):
         """
         Test with 3 variables: Maximize z = 5x1 + 4x2 + 3x3
         Subject to:
@@ -109,7 +109,7 @@ class TestFullSimplexIntegration:
             if constraint.operator == "<=":
                 assert lhs <= constraint.free_val + 1e-6
     
-    def test_mixed_constraints(self, solver: LPSolver):
+    def test_mixed_constraints(self, solver: SimplexSolver):
         """
         Test with mixed constraints: Maximize z = x1 + 2x2
         Subject to:
@@ -137,7 +137,7 @@ class TestFullSimplexIntegration:
         assert result.solution is not None
         assert len(result.solution) == 2
     
-    def test_standard_form_conversion(self, solver: LPSolver):
+    def test_standard_form_conversion(self, solver: SimplexSolver):
         """Test that standard form is created correctly"""
         problem = LPProblem(
             optimization_type=OptimizationType.MINIMIZE.value,
@@ -161,7 +161,7 @@ class TestFullSimplexIntegration:
         # all constraints should be equalities
         assert all(c.operator == "=" for c in standard_form.constraints)
     
-    def test_solution_feasibility_check(self, solver: LPSolver):
+    def test_solution_feasibility_check(self, solver: SimplexSolver):
         """verify that returned solution satisfies all constraints"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -194,7 +194,7 @@ class TestFullSimplexIntegration:
         calculated_z = 3 * x1 + 5 * x2
         assert abs(result.optimal_value - calculated_z) < 1e-6
     
-    def test_iteration_history_saved(self, solver: LPSolver):
+    def test_iteration_history_saved(self, solver: SimplexSolver):
         """Test that iteration history is properly saved"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -218,7 +218,7 @@ class TestFullSimplexIntegration:
             assert len(iteration["headers"]) > 0
             assert len(iteration["data"]) > 0
     
-    def test_empty_problem(self, solver: LPSolver):
+    def test_empty_problem(self, solver: SimplexSolver):
         """Test handling of empty problem"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,
@@ -233,7 +233,7 @@ class TestFullSimplexIntegration:
         assert result.error_message is not None
         assert "empty" in result.error_message.lower()
     
-    def test_degenerate_solution(self, solver: LPSolver):
+    def test_degenerate_solution(self, solver: SimplexSolver):
         """Test problem with degenerate solution (basic variable = 0)"""
         problem = LPProblem(
             optimization_type=OptimizationType.MAXIMIZE.value,

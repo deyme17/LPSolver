@@ -16,8 +16,11 @@ bfs_finders: Dict[str, IBFSFinder] = {
 }
 
 # solvers
-from .solvers.simplex_solver import SimplexSolver
+from .solvers import (
+    SimplexSolver, BranchAndBoundSolver
+)
 
 solvers: Dict[str, type[ISolver]] = {
     "Simplex method": SimplexSolver,
+    "Branch and bounds method (int)": BranchAndBoundSolver
 }

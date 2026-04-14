@@ -18,9 +18,11 @@ class TwoPhase_BFSFinder(IBFSFinder):
     """
     def __init__(self, max_iterations: int = 10_000) -> None:
         self.max_iterations = max_iterations
-        self.phase1_table = None
+        self.phase1_table: Optional[SimplexTable] = None
 
     def find_initial_bfs(self, standard_form: LPProblem) -> BFSolution:
+        self.phase1_table = None
+
         m = len(standard_form.constraints)
         n = standard_form.variables_count
 
@@ -49,9 +51,20 @@ class TwoPhase_BFSFinder(IBFSFinder):
                 full_solution=None,
             )
         self._remove_artificials_from_basis(self.phase1_table, n)
+
+        # artificial in basis with values != 0
+        for i, bi in enumerate(self.phase1_table.basis):
+            if bi >= n and abs(self.phase1_table.b[i]) > EPSILON:
+                # infeasibility (artificial stuck in basis)
+                return BFSolution(
+                    basis_indices=[0],
+                    basic_values=[-1.0],
+                    full_solution=None,
+                )
+
         return self._extract_phase2_bfs(self.phase1_table, m, n)
 
-    def _build_phase1_problem(self, standard_form: LPProblem, m: int, n: int, 
+    def _build_phase1_problem(self, standard_form: LPProblem, m: int, n: int,
                               num_art: int, needs_artificial: List[bool]) -> LPProblem:
         """
         Create a temporary LPProblem for Phase 1:
@@ -99,7 +112,7 @@ class TwoPhase_BFSFinder(IBFSFinder):
                 basis_indices.append(n + art_col)
                 art_col += 1
             else:
-                basis_indices.append(self._find_unit_col(A[i], n))
+                basis_indices.append(self._find_unit_col(A, i, n))
 
         basic_values = [c.free_val for c in phase1_problem.constraints]
         full_solution = [0.0] * total
@@ -112,7 +125,7 @@ class TwoPhase_BFSFinder(IBFSFinder):
             full_solution=full_solution,
         )
 
-    # --- phase 1 --
+    # --- phase 1 ---
 
     def _run_phase1(self, table: SimplexTable) -> None:
         """Drive the Phase-1 simplex iterations on the given table."""
@@ -138,9 +151,11 @@ class TwoPhase_BFSFinder(IBFSFinder):
         b = table.b
 
         for i, bi in enumerate(basis):
-            if bi < n or abs(b[i]) > EPSILON:
+            if bi < n:  # check only artificials
                 continue
-            # find a non-basic original column with non-zero coefficient in row i
+            if abs(b[i]) > EPSILON: # infeasible
+                continue
+            # find a non-basic orig col with a coeff != 0
             for j in range(n):
                 if j not in basis and abs(A[i, j]) > EPSILON:
                     table.pivot(i, j)
@@ -148,25 +163,30 @@ class TwoPhase_BFSFinder(IBFSFinder):
 
     def _extract_phase2_bfs(self, table: SimplexTable, m: int, n: int) -> BFSolution:
         """
-        Extract a BFSolution from the Phase-1 table containing only
-        indices within [0, n) so that Phase-2 SimplexTable is consistent
-        with the original (non-augmented) standard_form.
+        Extract a BFSolution from the Phase-1 table.
+        Only indices within [0, n) are valid for Phase 2; artificial columns
+        (index >= n) that survived (degenerate zeros) keep their index so the
+        Phase-2 SimplexTable can detect them if needed.
         """
-        basis_indices = [int(bi) for bi in table.basis]
-        basic_values = [float(table.b[i]) for i in range(m)]
-
-        full_solution = [0.0] * n
-        for i, bi in enumerate(basis_indices):
+        phase2_basis = []
+        phase2_values = []
+ 
+        for i, bi in enumerate(table.basis):
             if bi < n:
-                full_solution[bi] = basic_values[i]
-
+                phase2_basis.append(int(bi))
+                phase2_values.append(float(table.b[i]))
+ 
+        full_solution = [0.0] * n
+        for bi, val in zip(phase2_basis, phase2_values):
+            full_solution[bi] = val
+ 
         return BFSolution(
-            basis_indices=basis_indices,
-            basic_values=basic_values,
+            basis_indices=phase2_basis,
+            basic_values=phase2_values,
             full_solution=full_solution,
         )
-
-    # -- helpers ---
+    
+    # --- helpers ---
 
     def _plain_slack_bfs(self, standard_form: LPProblem, m: int, n: int) -> BFSolution:
         """Fallback: all constraints already have slack basis columns."""
@@ -196,9 +216,18 @@ class TwoPhase_BFSFinder(IBFSFinder):
                 has_basis[ones[0]] = True
         return [not h for h in has_basis]
 
-    def _find_unit_col(self, row, n: int) -> int:
-        """Return the rightmost column == 1 in the first n entries of a row."""
-        for j in range(n - 1, -1, -1):
-            if abs(row[j] - 1.0) < EPSILON:
+    def _find_unit_col(self, A: np.ndarray, row: int, n: int) -> int:
+        """
+        Return the index of a valid basis column for row within the first
+        n columns. A valid basis column must be a unit vector in the full matrix
+        A: exactly 1.0 in this row and 0.0 in all other rows.
+        """
+        m = A.shape[0]
+        for j in range(n):
+            if abs(A[row][j] - 1.0) >= EPSILON:
+                continue
+            col = A[:, j]
+            ones = np.where(np.abs(col - 1.0) < EPSILON)[0]
+            zeros = np.where(np.abs(col) < EPSILON)[0]
+            if len(ones) == 1 and len(zeros) == m - 1:
                 return j
-        return n - 1

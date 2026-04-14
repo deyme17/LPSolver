@@ -190,8 +190,8 @@ class TwoPhase_BFSFinder(IBFSFinder):
         has_basis: List[bool] = [False] * m
         for j in range(n):
             col = A[:, j]
-            ones  = np.where(np.abs(col - 1.0) < EPSILON)[0]
-            zeros = np.where(np.abs(col)        < EPSILON)[0]
+            ones = np.where(np.abs(col - 1.0) < EPSILON)[0]
+            zeros = np.where(np.abs(col) < EPSILON)[0]
             if len(ones) == 1 and len(zeros) == m - 1:
                 has_basis[ones[0]] = True
         return [not h for h in has_basis]

@@ -60,8 +60,8 @@ class BigM_BFSFinder(IBFSFinder):
         total_vars = n + num_artificials
         standard_form.variables_count = total_vars
 
-        basic_values  = [c.free_val for c in standard_form.constraints]
-        full_solution  = [0.0] * total_vars
+        basic_values = [c.free_val for c in standard_form.constraints]
+        full_solution = [0.0] * total_vars
         for i, bi in enumerate(basis_indices):
             full_solution[bi] = basic_values[i]
 
@@ -87,8 +87,8 @@ class BigM_BFSFinder(IBFSFinder):
 
         for j in range(n):
             col = A[:, j]
-            ones  = np.where(np.abs(col - 1.0) < EPSILON)[0]
-            zeros = np.where(np.abs(col)       < EPSILON)[0]
+            ones = np.where(np.abs(col - 1.0) < EPSILON)[0]
+            zeros = np.where(np.abs(col) < EPSILON)[0]
             if len(ones) == 1 and len(zeros) == m - 1:
                 has_basis[ones[0]] = True
 

@@ -84,7 +84,7 @@ class ISolver(ABC):
         """
         Args:
             bfs_finder: Component for finding basic feasible solutions
-        """Асщтыекф
+        """
         self.bfs_finder = bfs_finder
         
     @abstractmethod

@@ -1,4 +1,5 @@
 from ..algorithms import SimplexAlgorithm
+from utils import ConstraintOperator as CO
 from utils import (
     LPProblem, LPResult, ConstraintData, 
     SolutionStatus, OptimizationType,
@@ -69,7 +70,8 @@ class SimplexSolver(ISolver):
             obj_coefs = [-a for a in obj_coefs]
 
         slack_count = 0
-        slack_needed = sum(1 for c in statement.constraints if c.operator in ("<=", ">="))
+        slack_needed = sum(1 for c in statement.constraints 
+                           if c.operator in (CO.LEQ.value, CO.GEQ.value))
         constraints = []
 
         # make all constraints '='
@@ -82,13 +84,13 @@ class SimplexSolver(ISolver):
             if free_val < 0:
                 free_val = -free_val
                 coefs = [-a for a in coefs]
-                if operator == ">=": operator = "<="
-                elif operator == "<=": operator = ">="
+                if operator == CO.GEQ.value: operator = CO.LEQ.value
+                elif operator == CO.LEQ.value: operator = CO.GEQ.value
 
             # add slack variables
             slack_vars = [0] * slack_needed
-            if operator in ("<=", ">="):
-                slack_vars[slack_count] = 1 if operator == "<=" else -1
+            if operator in (CO.LEQ.value, CO.GEQ.value):
+                slack_vars[slack_count] = 1 if operator == CO.LEQ.value else -1
                 slack_count += 1
 
             new_coeffs = coefs + slack_vars

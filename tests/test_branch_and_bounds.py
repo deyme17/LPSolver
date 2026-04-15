@@ -21,7 +21,7 @@ from utils import (
     SolutionStatus, OptimizationType,
 )
 from core.solvers.branch_bounds_solver import BranchAndBoundSolver, BBNode
-from core.bfs import BigM_BFSFinder
+from core.bfs import TwoPhase_BFSFinder
 
 
 # ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ def make_lp_result(status, optimal_value=None, solution=None):
 
 
 def default_solver(max_nodes=5000):
-    return BranchAndBoundSolver(BigM_BFSFinder(), max_nodes=max_nodes)
+    return BranchAndBoundSolver(TwoPhase_BFSFinder(), max_nodes=max_nodes)
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ class TestBranchAndBoundSolverEdge:
             ],
             integer_indices=[0, 1],
         )
-        solver = BranchAndBoundSolver(BigM_BFSFinder(), max_nodes=1)
+        solver = BranchAndBoundSolver(TwoPhase_BFSFinder(), max_nodes=1)
         result = solver.solve(prob)
 
         assert result.status == SolutionStatus.ERROR.value

@@ -94,7 +94,7 @@ class SimplexSolver(ISolver):
                 slack_count += 1
 
             new_coeffs = coefs + slack_vars
-            constraints.append(ConstraintData(new_coeffs, "=", free_val))
+            constraints.append(ConstraintData(new_coeffs, CO.EQ.value, free_val))
 
         return LPProblem(
             optimization_type = OptimizationType.MAXIMIZE.value,

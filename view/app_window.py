@@ -81,7 +81,7 @@ class LPSolverApp(QMainWindow):
         main_layout.addWidget(QLabel("BFS Finder"))
         main_layout.addWidget(self.bfs_combo)
 
-        main_layout.addWidget(QLabel("Simplex Algorithm"))
+        main_layout.addWidget(QLabel("Solver method"))
         main_layout.addWidget(self.solver_combo)
                 
         # controls
@@ -90,7 +90,7 @@ class LPSolverApp(QMainWindow):
     
     def _create_title(self) -> QLabel:
         """Create and configure the title label"""
-        title = QLabel("Linear Programming Solver - Simplex Method")
+        title = QLabel("Linear Programming Solver")
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)

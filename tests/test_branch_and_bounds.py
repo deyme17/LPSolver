@@ -463,7 +463,7 @@ class TestBranchAndBoundSolverIntegration:
               3x1 + 2x2 <= 12
               2x1 + 3x2 <= 12
               x1, x2 >= 0, integer
-        Known optimum: x1=3, x2=2 → value 5  (or x1=2, x2=3 → 5)
+        Known optimum: x1=2, x2=2 → value 5  (or x1=2, x2=2 → 4)
         """
         prob = make_problem(
             obj_coefs=[1.0, 1.0],
@@ -478,7 +478,7 @@ class TestBranchAndBoundSolverIntegration:
         result = solver.solve(prob)
 
         assert result.status == SolutionStatus.OPTIMAL.value
-        assert abs(result.optimal_value - 5.0) < 1e-5
+        assert abs(result.optimal_value - 4.0) < 1e-5
         assert all(
             abs(result.solution[i] - round(result.solution[i])) < 1e-5
             for i in [0, 1]

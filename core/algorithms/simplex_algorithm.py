@@ -1,5 +1,6 @@
 from utils import LPProblem, LPResult, BFSolution, SolutionStatus
 from ..simplex_table import SimplexTable
+import numpy as np
 
 
 class SimplexAlgorithm:
@@ -42,6 +43,15 @@ class SimplexAlgorithm:
                 # pivot
                 self.table.pivot(leaving_row, entering_col)
                 self.iteration_count += 1
+            
+            # check on artificials
+            if initial_solution.artificial_indices:
+                final_solution = self.table.get_solution_vector()
+                art_sum = sum(final_solution[i] for i in initial_solution.artificial_indices)
+                if art_sum > 1e-8:
+                    return self._create_error_result(
+                        "Artificial variables remain in basis (problem is infeasible)"
+                    )
             
             return self._create_optimal_result()
             

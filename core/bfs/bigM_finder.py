@@ -19,6 +19,7 @@ class BigM_BFSFinder(IBFSFinder):
         extra_obj = []
         basis_indices = []
         new_constraints = []
+        art_ids = []
 
         for i, constraint in enumerate(standard_form.constraints):
             col_idx = n + i
@@ -36,6 +37,7 @@ class BigM_BFSFinder(IBFSFinder):
                 extra_obj.append(0.0)
             elif op in (CO.GEQ.value, CO.EQ.value):
                 extra_obj.append(-self.big_m)
+                art_ids.append(col_idx)
             else:
                 raise ValueError(f"Unexpected constraint operator: '{op}'")
 
@@ -61,4 +63,5 @@ class BigM_BFSFinder(IBFSFinder):
             basis_indices=basis_indices,
             basic_values=basic_values,
             full_solution=full_solution,
+            artificial_indices=art_ids
         )

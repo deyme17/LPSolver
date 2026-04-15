@@ -3,6 +3,7 @@ from typing import List, Optional
 import math
 import heapq
 
+from utils import ConstraintOperator as CO
 from utils import (
     LPProblem, LPResult, IBFSFinder, ISolver,
     ConstraintData, SolutionStatus, OptimizationType
@@ -18,9 +19,13 @@ class BBNode:
     relaxation_value: float = 0.0
     branch_var: Optional[int] = None
     branch_dir: Optional[str] = None
+    is_max: bool = True
 
     def __lt__(self, other):
-        return self.relaxation_value > other.relaxation_value
+        if self.is_max:
+            return self.relaxation_value > other.relaxation_value
+        else:
+            return self.relaxation_value < other.relaxation_value
 
 
 
@@ -58,7 +63,7 @@ class BranchAndBoundSolver(ISolver):
             return self.simplex_solver.solve(problem)
 
         is_max = (problem.optimization_type == OptimizationType.MAXIMIZE.value)
-        root = BBNode(problem, 0, float("-inf") if is_max else float("inf"))
+        root = BBNode(problem=problem, depth=0, is_max=is_max)
         node_queue = [root]
         heapq.heapify(node_queue)
 
@@ -73,9 +78,9 @@ class BranchAndBoundSolver(ISolver):
             # relaxation
             relaxation = self.simplex_solver.solve(node.problem)
 
-            # prune
+            # prune infeasible/error nodes
             if relaxation.status != SolutionStatus.OPTIMAL.value:
-                continue 
+                continue
             # bounding
             if self._should_prune(relaxation, is_max):
                 continue
@@ -92,12 +97,22 @@ class BranchAndBoundSolver(ISolver):
             floor_val, ceil_val = math.floor(val), math.ceil(val)
 
             lb, ub = self._get_var_bounds(node.problem, frac_idx)
+            # left branch: xi <= floor(val) (skip if floor_val < lb)
             if floor_val >= lb:
-                left_prob = self._add_constraint(node.problem, frac_idx, "<=", floor_val)
-                heapq.heappush(node_queue, BBNode(left_prob, node.depth + 1, relaxation.optimal_value, frac_idx, f"<={floor_val}"))
+                left_prob = self._add_constraint(node.problem, frac_idx, CO.LEQ.value, floor_val)
+                heapq.heappush(node_queue, BBNode(
+                    problem=left_prob, depth=node.depth + 1,
+                    relaxation_value=relaxation.optimal_value,
+                    branch_var=frac_idx, branch_dir=f"{CO.LEQ.value}{floor_val}", is_max=is_max)
+                )
+            # right branch xi >= ceil(var) (skip if exeedes upper bound)
             if ceil_val <= ub:
-                right_prob = self._add_constraint(node.problem, frac_idx, ">=", ceil_val)
-                heapq.heappush(node_queue, BBNode(right_prob, node.depth + 1, relaxation.optimal_value, frac_idx, f">={ceil_val}"))
+                right_prob = self._add_constraint(node.problem, frac_idx, CO.GEQ.value, ceil_val)
+                heapq.heappush(node_queue, BBNode(
+                    problem=right_prob, depth=node.depth + 1,
+                    relaxation_value=relaxation.optimal_value,
+                    branch_var=frac_idx, branch_dir=f"{CO.GEQ.value}{ceil_val}", is_max=is_max)
+                )
 
         if self.best_result:
             self.best_result.status = SolutionStatus.OPTIMAL.value
@@ -145,14 +160,17 @@ class BranchAndBoundSolver(ISolver):
         raise ValueError("No fractional variable found")
     
     def _get_var_bounds(self, prob: LPProblem, var_idx: int) -> tuple[float, float]:
-        """Return variable bounds to avoid nonsense branches."""
+        """Return the tightest lb/ub for var_idx implied by single-variable constraints in prob."""
         lb, ub = 0.0, float("inf")
         for c in prob.constraints:
-            if sum(1 for x in c.coefficients if x != 0) == 1 and c.coefficients[var_idx] != 0:
-                if c.operator == "<=":
-                    ub = min(ub, c.free_val)
-                elif c.operator == ">=":
-                    lb = max(lb, c.free_val)
+            non_zero = [i for i, x in enumerate(c.coefficients) if x != 0]
+            if len(non_zero) == 1 and non_zero[0] == var_idx:
+                coef = c.coefficients[var_idx]
+                rhs = c.free_val / coef  # normalize
+                if c.operator == CO.LEQ.value:
+                    ub = min(ub, rhs)
+                elif c.operator == CO.GEQ.value:
+                    lb = max(lb, rhs)
         return lb, ub
 
     def _add_constraint(self, prob: LPProblem, var_idx: int, op: str, bound: float) -> LPProblem:

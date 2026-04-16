@@ -44,7 +44,7 @@ For problems with integer constraints, the solver:
 
 1.  **Clone the repository**:
     ```bash
-    git clone [https://github.com/deyme17/LPSolver.git](https://github.com/deyme17/LPSolver.git)
+    git clone https://github.com/deyme17/LPSolver.git
     cd LPSolver
     ```
 
